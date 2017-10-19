@@ -14,14 +14,16 @@
  */
 package com.google.api.codegen;
 
-import com.google.api.codegen.advising.Adviser;
 import com.google.api.codegen.config.GapicProductConfig;
 import com.google.api.codegen.config.PackageMetadataConfig;
+import com.google.api.codegen.configgen.Adviser;
+import com.google.api.codegen.configgen.MessageGenerator;
+import com.google.api.codegen.configgen.mergers.ConfigMerger;
+import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.codegen.gapic.GapicGeneratorConfig;
 import com.google.api.codegen.gapic.GapicProvider;
 import com.google.api.codegen.gapic.GapicProviderFactory;
 import com.google.api.codegen.util.ClassInstantiator;
-import com.google.api.tools.framework.model.ConfigSource;
 import com.google.api.tools.framework.model.Diag;
 import com.google.api.tools.framework.model.Model;
 import com.google.api.tools.framework.model.SimpleLocation;
@@ -34,17 +36,14 @@ import com.google.api.tools.framework.tools.ToolUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.inject.TypeLiteral;
 import com.google.protobuf.ExtensionRegistry;
-import com.google.protobuf.Message;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -57,12 +56,12 @@ public class CodeGeneratorApi extends ToolDriverBase {
           "The name of the output file or folder to put generated code.",
           "");
 
-  public static final Option<List<String>> GENERATOR_CONFIG_FILES =
+  public static final Option<String> GENERATOR_CONFIG_FILE =
       ToolOptions.createOption(
-          new TypeLiteral<List<String>>() {},
-          "config_files",
-          "The list of YAML configuration files for the code generator.",
-          ImmutableList.<String>of());
+          new TypeLiteral<String>() {},
+          "config_file",
+          "The YAML configuration file for the code generator.",
+          "");
 
   public static final Option<String> PACKAGE_CONFIG_FILE =
       ToolOptions.createOption(
@@ -95,34 +94,35 @@ public class CodeGeneratorApi extends ToolDriverBase {
 
   @Override
   protected void process() throws Exception {
-
-    // Read the YAML config and convert it to proto.
-    List<String> configFileNames = options.get(GENERATOR_CONFIG_FILES);
-    if (configFileNames.size() == 0) {
-      error(String.format("--%s must be provided", GENERATOR_CONFIG_FILES.name()));
-      return;
-    }
-
-    ConfigSource configSource = loadConfigFromFiles(configFileNames);
-    if (configSource == null) {
-      return;
-    }
-
-    ConfigProto configProto = (ConfigProto) configSource.getConfig();
-    if (configProto == null) {
+    String configFileName = options.get(GENERATOR_CONFIG_FILE);
+    File configFile = ToolUtil.findDataFile(configFileName, model.getDataPath());
+    if (configFile == null) {
+      error("Cannot find configuration file.");
       return;
     }
 
     model.establishStage(Merged.KEY);
 
+    ConfigNode configNode = new ConfigMerger().mergeConfig(model, configFile);
+    if (configNode == null) {
+      return;
+    }
+
     List<String> adviceSuppressors = options.get(ADVICE_SUPPRESSORS);
     Adviser adviser = new Adviser(adviceSuppressors);
-    adviser.advise(model, configProto);
+    adviser.advise(model.getDiagCollector(), configNode);
 
     if (model.getDiagCollector().getErrorCount() > 0) {
       for (Diag diag : model.getDiagCollector().getDiags()) {
         System.err.println(diag.toString());
       }
+      return;
+    }
+
+    MessageGenerator messageGenerator = new MessageGenerator(ConfigProto.newBuilder());
+    messageGenerator.visit(configNode.getChild());
+    ConfigProto configProto = (ConfigProto) messageGenerator.toMessage();
+    if (configProto == null) {
       return;
     }
 
@@ -193,32 +193,6 @@ public class CodeGeneratorApi extends ToolDriverBase {
               }
             });
     return provider;
-  }
-
-  private ConfigSource loadConfigFromFiles(List<String> configFileNames) {
-    List<File> configFiles = pathsToFiles(configFileNames);
-    if (model.getDiagCollector().getErrorCount() > 0) {
-      return null;
-    }
-    ImmutableMap<String, Message> supportedConfigTypes =
-        ImmutableMap.<String, Message>of(
-            ConfigProto.getDescriptor().getFullName(), ConfigProto.getDefaultInstance());
-    return MultiYamlReader.read(model.getDiagCollector(), configFiles, supportedConfigTypes);
-  }
-
-  private List<File> pathsToFiles(List<String> configFileNames) {
-    List<File> files = new ArrayList<>();
-
-    for (String configFileName : configFileNames) {
-      File file = model.findDataFile(configFileName);
-      if (file == null) {
-        error("Cannot find configuration file '%s'.", configFileName);
-        continue;
-      }
-      files.add(file);
-    }
-
-    return files;
   }
 
   private void error(String message, Object... args) {

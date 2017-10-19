@@ -1,0 +1,17 @@
+WARNING: missing_language_settings_gapic.yaml:2: (advice) language-settings: Missing 'language_settings'
+Did you mean:
+  language_settings:
+    java:
+      package_name: com.google.cloud.example.myproto.spi.v1
+    python:
+      package_name: google.cloud.example.myproto_v1.gapic
+    go:
+      package_name: cloud.google.com/go/example/myproto/apiv1
+    csharp:
+      package_name: Google.Example.Myproto.V1
+    ruby:
+      package_name: Google::Cloud::Example::Myproto::V1
+    php:
+      package_name: Google\Cloud\Example\Myproto\V1
+    nodejs:
+      package_name: myproto.v1
