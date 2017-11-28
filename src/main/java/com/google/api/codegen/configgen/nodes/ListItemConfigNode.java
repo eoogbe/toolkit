@@ -16,16 +16,19 @@ package com.google.api.codegen.configgen.nodes;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.api.codegen.configgen.nodes.metadata.Advice;
 import com.google.api.codegen.configgen.nodes.metadata.Comment;
 import com.google.api.codegen.configgen.nodes.metadata.NullComment;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 
 /** Represents an item in a list of a gapic config. */
 public class ListItemConfigNode extends BaseConfigNode {
   private ConfigNode child;
   private Comment comment;
+  private Advice advice;
 
-  public ListItemConfigNode(int startLine) {
-    super(startLine, "");
+  public ListItemConfigNode(Source source) {
+    super(source, "");
   }
 
   @Override
@@ -37,6 +40,10 @@ public class ListItemConfigNode extends BaseConfigNode {
     return comment == null ? new NullComment() : comment;
   }
 
+  public Advice getAdvice() {
+    return advice;
+  }
+
   @Override
   public ListItemConfigNode setChild(ConfigNode child) {
     checkArgument(this != child, "Cannot set node to be its own child");
@@ -46,6 +53,11 @@ public class ListItemConfigNode extends BaseConfigNode {
 
   public ListItemConfigNode setComment(Comment comment) {
     this.comment = comment;
+    return this;
+  }
+
+  public ListItemConfigNode setAdvice(Advice advice) {
+    this.advice = advice;
     return this;
   }
 }

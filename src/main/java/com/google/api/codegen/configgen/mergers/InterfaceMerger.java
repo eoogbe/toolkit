@@ -24,6 +24,7 @@ import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.codegen.configgen.nodes.FieldConfigNode;
 import com.google.api.codegen.configgen.nodes.ListItemConfigNode;
 import com.google.api.codegen.configgen.nodes.metadata.DefaultComment;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 import java.util.Map;
 
 /** Merges the interfaces property from an ApiModel into a ConfigNode. */
@@ -59,12 +60,12 @@ public class InterfaceMerger {
         .setComment(new DefaultComment("A list of API interface configurations."));
   }
 
-  private ListItemConfigNode generateInterfaceNode(int startLine, InterfaceModel apiInterface) {
+  private ListItemConfigNode generateInterfaceNode(Source source, InterfaceModel apiInterface) {
     Map<String, String> collectionNameMap =
         interfaceTransformer.getResourceToEntityNameMap(apiInterface);
-    ListItemConfigNode interfaceNode = new ListItemConfigNode(startLine);
+    ListItemConfigNode interfaceNode = new ListItemConfigNode(source);
     FieldConfigNode nameNode =
-        FieldConfigNode.createStringPair(startLine, "name", apiInterface.getFullName())
+        FieldConfigNode.createStringPair(source, "name", apiInterface.getFullName())
             .setComment(new DefaultComment("The fully qualified name of the API interface."));
     interfaceNode.setChild(nameNode);
     ConfigNode collectionsNode =

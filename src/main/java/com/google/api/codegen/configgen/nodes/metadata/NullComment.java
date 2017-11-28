@@ -17,7 +17,7 @@ package com.google.api.codegen.configgen.nodes.metadata;
 /** Implements the Null Object Pattern for Comment. */
 public class NullComment implements Comment {
   @Override
-  public String generate() {
+  public String generate(Type type) {
     return "";
   }
 }

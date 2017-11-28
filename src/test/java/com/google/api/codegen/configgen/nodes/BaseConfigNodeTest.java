@@ -14,46 +14,48 @@
  */
 package com.google.api.codegen.configgen.nodes;
 
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 import com.google.common.truth.Truth;
 import org.junit.Test;
 
 public class BaseConfigNodeTest {
   private static class TestConfigNode extends BaseConfigNode {
-    TestConfigNode(int startLine, String text) {
-      super(startLine, text);
+    TestConfigNode(Source source, String text) {
+      super(source, text);
     }
   }
 
   @Test
   public void testIsPresent() throws Exception {
-    TestConfigNode node = new TestConfigNode(0, "foo");
+    TestConfigNode node = new TestConfigNode(Source.create(0, "foo.yaml"), "foo");
     Truth.assertThat(node.isPresent()).isTrue();
   }
 
   @Test
-  public void testGetStartLine() throws Exception {
-    TestConfigNode node = new TestConfigNode(1, "foo");
-    Truth.assertThat(node.getStartLine()).isEqualTo(1);
+  public void testGetSource() throws Exception {
+    Source source = Source.create(1, "foo.yaml");
+    TestConfigNode node = new TestConfigNode(source, "foo");
+    Truth.assertThat(node.getSource()).isEqualTo(source);
   }
 
   @Test
   public void testGetText() throws Exception {
-    TestConfigNode node = new TestConfigNode(0, "foo");
+    TestConfigNode node = new TestConfigNode(Source.create(0, "foo.yaml"), "foo");
     Truth.assertThat(node.getText()).isEqualTo("foo");
   }
 
   @Test
   public void testChild() throws Exception {
-    TestConfigNode node = new TestConfigNode(0, "foo");
-    ConfigNode child = new ScalarConfigNode(0, "bar");
+    TestConfigNode node = new TestConfigNode(Source.create(0, "foo.yaml"), "foo");
+    ConfigNode child = new ScalarConfigNode(Source.create(0, "foo.yaml"), "bar");
     Truth.assertThat(node.setChild(child)).isSameAs(node);
     Truth.assertThat(node.getChild().isPresent()).isFalse();
   }
 
   @Test
   public void testNext() throws Exception {
-    TestConfigNode node = new TestConfigNode(0, "foo");
-    ConfigNode next = new ScalarConfigNode(0, "bar");
+    TestConfigNode node = new TestConfigNode(Source.create(0, "foo.yaml"), "foo");
+    ConfigNode next = new ScalarConfigNode(Source.create(0, "foo.yaml"), "bar");
     Truth.assertThat(node.getNext().isPresent()).isFalse();
     Truth.assertThat(node.insertNext(next)).isSameAs(node);
     Truth.assertThat(node.getNext()).isSameAs(next);

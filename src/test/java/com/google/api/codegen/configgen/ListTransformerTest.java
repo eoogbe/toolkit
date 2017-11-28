@@ -18,6 +18,7 @@ import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.codegen.configgen.nodes.FieldConfigNode;
 import com.google.api.codegen.configgen.nodes.ListItemConfigNode;
 import com.google.api.codegen.configgen.nodes.ScalarConfigNode;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 import com.google.common.truth.Truth;
 import java.util.Arrays;
 import java.util.List;
@@ -27,14 +28,14 @@ public class ListTransformerTest {
   @Test
   public void testGenerateList() throws Exception {
     List<Integer> elements = Arrays.asList(1, 2);
-    ConfigNode parent = new FieldConfigNode(0, "parent");
+    ConfigNode parent = new FieldConfigNode(Source.create(0, "foo.yaml"), "parent");
     ConfigNode listNode =
         ListTransformer.generateList(
             elements,
             parent,
-            (startLine, element) ->
-                new ListItemConfigNode(startLine)
-                    .setChild(new ScalarConfigNode(startLine, String.valueOf(element))));
+            (source, element) ->
+                new ListItemConfigNode(source)
+                    .setChild(new ScalarConfigNode(source, String.valueOf(element))));
     int index = 0;
     for (ConfigNode node : NodeFinder.getChildren(parent)) {
       Truth.assertThat(node.getChild().getText()).isEqualTo(String.valueOf(elements.get(index++)));
@@ -44,7 +45,7 @@ public class ListTransformerTest {
   @Test
   public void testGenerateStringList() throws Exception {
     List<String> elements = Arrays.asList("1", "2");
-    ConfigNode parent = new FieldConfigNode(0, "parent");
+    ConfigNode parent = new FieldConfigNode(Source.create(0, "foo.yaml"), "parent");
     ConfigNode listNode = ListTransformer.generateStringList(elements, parent);
     int index = 0;
     for (ConfigNode node : NodeFinder.getChildren(parent)) {

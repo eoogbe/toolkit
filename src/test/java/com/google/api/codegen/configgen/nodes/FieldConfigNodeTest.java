@@ -16,14 +16,15 @@ package com.google.api.codegen.configgen.nodes;
 
 import com.google.api.codegen.configgen.nodes.metadata.Comment;
 import com.google.api.codegen.configgen.nodes.metadata.DefaultComment;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 import com.google.common.truth.Truth;
 import org.junit.Test;
 
 public class FieldConfigNodeTest {
   @Test
   public void testChild() throws Exception {
-    FieldConfigNode node = new FieldConfigNode(0, "foo");
-    ConfigNode child = new ScalarConfigNode(0, "bar");
+    FieldConfigNode node = new FieldConfigNode(Source.create(0, "foo.yaml"), "foo");
+    ConfigNode child = new ScalarConfigNode(Source.create(0, "foo.yaml"), "bar");
     Truth.assertThat(node.getChild().isPresent()).isFalse();
     Truth.assertThat(node.setChild(child)).isSameAs(node);
     Truth.assertThat(node.getChild()).isSameAs(child);
@@ -31,9 +32,9 @@ public class FieldConfigNodeTest {
 
   @Test
   public void testComment() throws Exception {
-    FieldConfigNode node = new FieldConfigNode(0, "foo");
+    FieldConfigNode node = new FieldConfigNode(Source.create(0, "foo.yaml"), "foo");
     Comment comment = new DefaultComment("Lorem ispum");
-    Truth.assertThat(node.getComment().generate()).isEqualTo("");
+    Truth.assertThat(node.getComment().generate(Comment.Type.INITIAL)).isEqualTo("");
     Truth.assertThat(node.setComment(comment)).isSameAs(node);
     Truth.assertThat(node.getComment()).isSameAs(comment);
   }

@@ -20,6 +20,7 @@ import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.codegen.configgen.nodes.FieldConfigNode;
 import com.google.api.codegen.configgen.nodes.ListItemConfigNode;
 import com.google.api.codegen.configgen.nodes.ScalarConfigNode;
+import com.google.api.codegen.configgen.nodes.metadata.Comment;
 import com.google.api.tools.framework.util.VisitsBefore;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -32,17 +33,25 @@ public class ConfigGenerator extends NodeVisitor {
 
   private static final int TAB_WIDTH = 2;
 
+  private final Comment.Type commentType;
+
   private final int indent;
 
-  private final StringBuilder configBuilder = new StringBuilder();
+  private final StringBuilder configBuilder;
 
-  public ConfigGenerator(int indent) {
+  public ConfigGenerator(Comment.Type commentType) {
+    this(commentType, 0, new StringBuilder());
+  }
+
+  public ConfigGenerator(Comment.Type commentType, int indent, StringBuilder configBuilder) {
+    this.commentType = commentType;
     this.indent = indent;
+    this.configBuilder = configBuilder;
   }
 
   @VisitsBefore
   void generate(FieldConfigNode node) {
-    appendComment(node.getComment().generate());
+    appendComment(node.getComment().generate(commentType));
     appendIndent();
 
     if (node.getText().isEmpty()) {
@@ -57,8 +66,8 @@ public class ConfigGenerator extends NodeVisitor {
 
   @VisitsBefore
   void generate(ListItemConfigNode node) {
-    appendComment(node.getComment().generate());
-    ConfigGenerator childGenerator = new ConfigGenerator(indent);
+    appendComment(node.getComment().generate(commentType));
+    ConfigGenerator childGenerator = new ConfigGenerator(commentType, indent, new StringBuilder());
     childGenerator.visit(node.getChild());
     String child = childGenerator.toString().trim();
     boolean isFirst = true;
@@ -140,7 +149,7 @@ public class ConfigGenerator extends NodeVisitor {
       return String.format(" []%n");
     }
 
-    ConfigGenerator childGenerator = new ConfigGenerator(indent);
+    ConfigGenerator childGenerator = new ConfigGenerator(commentType, indent, new StringBuilder());
     childGenerator.visit(childNode);
     String child = childGenerator.toString();
     if (childNode instanceof ScalarConfigNode) {

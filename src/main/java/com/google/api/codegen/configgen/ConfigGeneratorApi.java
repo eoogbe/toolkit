@@ -16,6 +16,7 @@ package com.google.api.codegen.configgen;
 
 import com.google.api.codegen.configgen.mergers.ProtoConfigMerger;
 import com.google.api.codegen.configgen.nodes.ConfigNode;
+import com.google.api.codegen.configgen.nodes.metadata.Comment;
 import com.google.api.tools.framework.model.Diag;
 import com.google.api.tools.framework.model.stages.Merged;
 import com.google.api.tools.framework.tools.ToolDriverBase;
@@ -53,8 +54,9 @@ public class ConfigGeneratorApi extends ToolDriverBase {
   }
 
   private Map<String, String> generateConfig(String outputPath) {
-    ConfigNode node = new ProtoConfigMerger().mergeConfig(model, outputPath);
-    ConfigGenerator configGenerator = new ConfigGenerator(0);
+    ConfigHelper helper = new ConfigHelper(model.getDiagCollector(), outputPath);
+    ConfigNode node = new ProtoConfigMerger(model, helper).mergeInitial();
+    ConfigGenerator configGenerator = new ConfigGenerator(Comment.Type.INITIAL);
     configGenerator.visit(node);
     return ImmutableMap.of(outputPath, configGenerator.toString());
   }

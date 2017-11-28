@@ -20,6 +20,7 @@ import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.codegen.configgen.nodes.FieldConfigNode;
 import com.google.api.codegen.configgen.nodes.ListItemConfigNode;
 import com.google.api.codegen.configgen.nodes.metadata.DefaultComment;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 import java.util.Map;
 
 /** Merges a collection name map into a ConfigNode. */
@@ -37,25 +38,24 @@ public class CollectionMerger {
 
   public ConfigNode generateCollectionsNode(ConfigNode prevNode, Map<String, String> nameMap) {
     FieldConfigNode collectionsNode =
-        new FieldConfigNode(NodeFinder.getNextLine(prevNode), "collections")
+        new FieldConfigNode(NodeFinder.getNextSourceLine(prevNode), "collections")
             .setComment(new DefaultComment(COLLECTIONS_COMMENT));
     prevNode.insertNext(collectionsNode);
     ListTransformer.generateList(
         nameMap.entrySet(),
         collectionsNode,
-        (startLine, entry) -> generateCollectionNode(startLine, entry.getKey(), entry.getValue()));
+        (source, entry) -> generateCollectionNode(source, entry.getKey(), entry.getValue()));
     return collectionsNode;
   }
 
-  private ConfigNode generateCollectionNode(int startLine, String namePattern, String entityName) {
-    ConfigNode collectionNode = new ListItemConfigNode(startLine);
+  private ConfigNode generateCollectionNode(Source source, String namePattern, String entityName) {
+    ConfigNode collectionNode = new ListItemConfigNode(source);
     ConfigNode namePatternNode =
-        FieldConfigNode.createStringPair(
-            collectionNode.getStartLine(), "name_pattern", namePattern);
+        FieldConfigNode.createStringPair(source, "name_pattern", namePattern);
     collectionNode.setChild(namePatternNode);
     ConfigNode entityNameNode =
         FieldConfigNode.createStringPair(
-            NodeFinder.getNextLine(namePatternNode), "entity_name", entityName);
+            NodeFinder.getNextSourceLine(namePatternNode), "entity_name", entityName);
     namePatternNode.insertNext(entityNameNode);
     return collectionNode;
   }

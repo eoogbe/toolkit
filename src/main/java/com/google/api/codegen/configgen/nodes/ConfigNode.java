@@ -14,16 +14,18 @@
  */
 package com.google.api.codegen.configgen.nodes;
 
+import com.google.api.codegen.configgen.nodes.metadata.Source;
+
 /**
- * Represents an element of sytax in a gapic config.
+ * Represents an element of syntax in a gapic config.
  *
  * <p>Linked to the node that follows it to preserving ordering when inserting between nodes.
  *
  * <p>Some implementations have a child node.
  */
 public interface ConfigNode {
-  /** Returns the line this node starts on. */
-  int getStartLine();
+  /** Returns the source for this node. */
+  Source getSource();
 
   /**
    * Returns the text value of this node.

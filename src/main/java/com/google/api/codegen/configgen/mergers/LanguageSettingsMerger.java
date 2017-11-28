@@ -14,13 +14,16 @@
  */
 package com.google.api.codegen.configgen.mergers;
 
+import com.google.api.codegen.configgen.ConfigHelper;
 import com.google.api.codegen.configgen.ListTransformer;
 import com.google.api.codegen.configgen.MissingFieldTransformer;
 import com.google.api.codegen.configgen.NodeFinder;
 import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.codegen.configgen.nodes.FieldConfigNode;
 import com.google.api.codegen.configgen.nodes.ScalarConfigNode;
+import com.google.api.codegen.configgen.nodes.metadata.Advice;
 import com.google.api.codegen.configgen.nodes.metadata.DefaultComment;
+import com.google.api.codegen.configgen.nodes.metadata.Rule;
 import com.google.api.codegen.util.VersionMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -28,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import java.util.List;
+import java.util.Map;
 
 /** Merges the language_settings property from a package into a ConfigNode. */
 public class LanguageSettingsMerger {
@@ -50,11 +54,18 @@ public class LanguageSettingsMerger {
           .put("nodejs", new NodeJSLanguageFormatter())
           .build();
 
+  private final ConfigHelper helper;
+
+  public LanguageSettingsMerger(ConfigHelper helper) {
+    this.helper = helper;
+  }
+
   public ConfigNode mergeLanguageSettings(
       final String packageName, ConfigNode configNode, ConfigNode prevNode) {
     FieldConfigNode languageSettingsNode =
         MissingFieldTransformer.insert("language_settings", configNode, prevNode).generate();
     if (NodeFinder.hasChild(languageSettingsNode)) {
+      checkLanguageSettings(packageName, languageSettingsNode);
       return languageSettingsNode;
     }
 
@@ -62,30 +73,72 @@ public class LanguageSettingsMerger {
         ListTransformer.generateList(
             LANGUAGE_FORMATTERS.entrySet(),
             languageSettingsNode,
-            (startLine, entry) -> {
-              ConfigNode languageNode = new FieldConfigNode(startLine, entry.getKey());
-              mergeLanguageSetting(languageNode, entry.getValue(), packageName);
+            (source, entry) -> {
+              ConfigNode languageNode = new FieldConfigNode(source, entry.getKey());
+              generateLanguageSetting(languageNode, entry.getValue(), packageName);
               return languageNode;
             });
     return languageSettingsNode
         .setChild(languageSettingsValueNode)
-        .setComment(new DefaultComment("The settings of generated code in a specific language."));
+        .setComment(new DefaultComment("The settings of generated code in a specific language."))
+        .setAdvice(
+            Advice.newBuilder()
+                .rule(Rule.LANGUAGE_SETTINGS)
+                .comment("Missing 'language_settings'.")
+                .location(helper.getLocation(languageSettingsNode))
+                .hasSuggestion(true)
+                .build());
   }
 
-  private ConfigNode mergeLanguageSetting(
+  private void checkLanguageSettings(String packageName, ConfigNode languageSettingsNode) {
+    for (Map.Entry<String, LanguageFormatter> entry : LANGUAGE_FORMATTERS.entrySet()) {
+      String language = entry.getKey();
+      LanguageFormatter languageFormatter = entry.getValue();
+      FieldConfigNode languageNode =
+          MissingFieldTransformer.append(language, languageSettingsNode).generate();
+
+      if (NodeFinder.hasChild(languageNode)) {
+        FieldConfigNode packageNameNode =
+            MissingFieldTransformer.prepend("package_name", languageNode).generate();
+        if (!NodeFinder.hasChild(packageNameNode)) {
+          packageNameNode.setAdvice(
+              Advice.newBuilder()
+                  .rule(Rule.LANGUAGE_SETTINGS)
+                  .comment(
+                      String.format(
+                          "Missing 'package_name' in language settings of key '%s'.", language))
+                  .location(helper.getLocation(packageNameNode))
+                  .hasSuggestion(true)
+                  .build());
+          generatePackageNameValue(packageNameNode, languageFormatter, packageName);
+        }
+      } else {
+        languageNode.setAdvice(
+            Advice.newBuilder()
+                .rule(Rule.LANGUAGE_SETTINGS)
+                .comment(String.format("Missing language settings for key '%s'.", language))
+                .location(helper.getLocation(languageNode))
+                .hasSuggestion(true)
+                .build());
+        generateLanguageSetting(languageNode, languageFormatter, packageName);
+      }
+    }
+  }
+
+  private ConfigNode generateLanguageSetting(
       ConfigNode languageNode, LanguageFormatter languageFormatter, String packageName) {
     ConfigNode packageNameNode =
-        new FieldConfigNode(NodeFinder.getNextLine(languageNode), "package_name");
+        new FieldConfigNode(NodeFinder.getNextSourceLine(languageNode), "package_name");
     languageNode.setChild(packageNameNode);
-    mergePackageNameValue(packageNameNode, languageFormatter, packageName);
+    generatePackageNameValue(packageNameNode, languageFormatter, packageName);
     return packageNameNode;
   }
 
-  private ConfigNode mergePackageNameValue(
+  private ConfigNode generatePackageNameValue(
       ConfigNode packageNameNode, LanguageFormatter languageFormatter, String packageName) {
     ConfigNode packageNameValueNode =
         new ScalarConfigNode(
-            packageNameNode.getStartLine(), languageFormatter.getFormattedPackageName(packageName));
+            packageNameNode.getSource(), languageFormatter.getFormattedPackageName(packageName));
     packageNameNode.setChild(packageNameValueNode);
     return packageNameValueNode;
   }

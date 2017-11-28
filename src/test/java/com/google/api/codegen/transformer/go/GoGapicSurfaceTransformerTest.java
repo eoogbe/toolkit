@@ -19,6 +19,8 @@ import com.google.api.codegen.ConfigProto;
 import com.google.api.codegen.config.GapicProductConfig;
 import com.google.api.codegen.config.MethodModel;
 import com.google.api.codegen.config.ProtoMethodModel;
+import com.google.api.codegen.configgen.ConfigHelper;
+import com.google.api.codegen.configgen.mergers.ProtoConfigMerger;
 import com.google.api.codegen.gapic.PackageNameCodePathMapper;
 import com.google.api.codegen.transformer.DefaultFeatureConfig;
 import com.google.api.codegen.transformer.GapicInterfaceContext;
@@ -59,9 +61,11 @@ public class GoGapicSurfaceTransformerTest {
       }
     }
 
+    String configFileName = "myproto_gapic.yaml";
+    ConfigHelper helper = new ConfigHelper(model.getDiagCollector(), configFileName);
+    ProtoConfigMerger configMerger = new ProtoConfigMerger(model, helper);
     ConfigProto configProto =
-        CodegenTestUtil.readConfig(
-            model.getDiagCollector(), locator, new String[] {"myproto_gapic.yaml"});
+        CodegenTestUtil.readConfig(configMerger, locator, new String[] {configFileName});
 
     productConfig = GapicProductConfig.create(model, configProto);
 

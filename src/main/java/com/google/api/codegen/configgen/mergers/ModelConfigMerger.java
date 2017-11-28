@@ -12,16 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.api.codegen.configgen.nodes.metadata;
+package com.google.api.codegen.configgen.mergers;
 
-/** Represents comment metadata for a ConfigNode. */
-public interface Comment {
-  enum Type {
-    NONE,
-    INITIAL,
-    REFRESH
-  }
+import com.google.api.codegen.configgen.ConfigHelper;
+import com.google.api.codegen.configgen.nodes.ConfigNode;
+import java.util.List;
 
-  /** Generates the String representation of this. */
-  String generate(Type type);
+/** ConfigMerger for a specific type of ApiModel source. */
+public interface ModelConfigMerger {
+  /** Merges the initial config. */
+  ConfigNode mergeInitial();
+
+  /** Merges a list of existing configs. */
+  ConfigNode mergeRefresh(List<ConfigNode> configNodes);
+
+  /** Returns the ConfigHelper that assist with merging. */
+  ConfigHelper getHelper();
 }

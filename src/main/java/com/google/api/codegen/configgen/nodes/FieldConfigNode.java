@@ -16,20 +16,23 @@ package com.google.api.codegen.configgen.nodes;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.api.codegen.configgen.nodes.metadata.Advice;
 import com.google.api.codegen.configgen.nodes.metadata.Comment;
 import com.google.api.codegen.configgen.nodes.metadata.NullComment;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 
 /** Represents a key-value pair in a gapic config. */
 public class FieldConfigNode extends BaseConfigNode {
   private ConfigNode child;
   private Comment comment;
+  private Advice advice;
 
-  public static FieldConfigNode createStringPair(int startLine, String key, String value) {
-    return new FieldConfigNode(startLine, key).setChild(new ScalarConfigNode(startLine, value));
+  public static FieldConfigNode createStringPair(Source source, String key, String value) {
+    return new FieldConfigNode(source, key).setChild(new ScalarConfigNode(source, value));
   }
 
-  public FieldConfigNode(int startLine, String text) {
-    super(startLine, text);
+  public FieldConfigNode(Source source, String text) {
+    super(source, text);
   }
 
   @Override
@@ -41,6 +44,10 @@ public class FieldConfigNode extends BaseConfigNode {
     return comment == null ? new NullComment() : comment;
   }
 
+  public Advice getAdvice() {
+    return advice;
+  }
+
   @Override
   public FieldConfigNode setChild(ConfigNode child) {
     checkArgument(this != child, "Cannot set node to be its own child");
@@ -50,6 +57,11 @@ public class FieldConfigNode extends BaseConfigNode {
 
   public FieldConfigNode setComment(Comment comment) {
     this.comment = comment;
+    return this;
+  }
+
+  public FieldConfigNode setAdvice(Advice advice) {
+    this.advice = advice;
     return this;
   }
 }

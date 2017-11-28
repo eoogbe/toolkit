@@ -14,13 +14,15 @@
  */
 package com.google.api.codegen.configgen.nodes;
 
+import com.google.api.codegen.configgen.nodes.metadata.Source;
+
 /**
  * Represents plain text in a gapic config.
  *
  * <p>Can represent a comment if the text starts with "#".
  */
 public class ScalarConfigNode extends BaseConfigNode {
-  public ScalarConfigNode(int startLine, String text) {
-    super(startLine, text);
+  public ScalarConfigNode(Source source, String text) {
+    super(source, text);
   }
 }

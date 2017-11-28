@@ -10,9 +10,9 @@ Different node types indicate what the `NodeVisitor` should do for a visited
 node. Nodes can have metadata, such as `Comment`s, that annotate and change the
 behavior of a node depending on how the `NodeVisitor` interprets it.
 
-The mergers combine the `Model` with a `ConfigNode` to output a `ConfigNode`
+The mergers combine the `ApiModel` with `ConfigNode`s to output a `ConfigNode`
 that represents the IDL. For initial gapic config generation, the input node is
-empty. When refreshing, the node will be read from an existing gapic yaml.
+empty. When refreshing, the nodes will be read from existing gapic yamls.
 
 To generate the yaml, a `ConfigGenerator` visits each node and builds the
 output.

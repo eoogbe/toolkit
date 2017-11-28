@@ -14,7 +14,7 @@
  */
 package com.google.api.codegen.configgen.nodes.metadata;
 
-/** Base comment to be wrapped by decorators. Outputs its String. */
+/** Base comment to be wrapped by decorators. Outputs its String when Type is not NONE. */
 public class DefaultComment implements Comment {
 
   private final String comment;
@@ -24,7 +24,7 @@ public class DefaultComment implements Comment {
   }
 
   @Override
-  public String generate() {
-    return comment;
+  public String generate(Type type) {
+    return type == Type.NONE ? "" : comment;
   }
 }

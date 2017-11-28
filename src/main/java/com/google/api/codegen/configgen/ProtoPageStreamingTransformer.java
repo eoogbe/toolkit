@@ -39,13 +39,13 @@ public class ProtoPageStreamingTransformer implements PageStreamingTransformer {
 
     ConfigNode tokenFieldNode =
         FieldConfigNode.createStringPair(
-            NodeFinder.getNextLine(parentNode),
+            NodeFinder.getNextSourceLine(parentNode),
             "token_field",
             PAGING_PARAMETERS.getNameForNextPageToken());
     parentNode.setChild(tokenFieldNode);
     ConfigNode resourcesFieldNode =
         FieldConfigNode.createStringPair(
-            NodeFinder.getNextLine(tokenFieldNode), "resources_field", resourcesFieldName);
+            NodeFinder.getNextSourceLine(tokenFieldNode), "resources_field", resourcesFieldName);
     return tokenFieldNode.insertNext(resourcesFieldNode);
   }
 

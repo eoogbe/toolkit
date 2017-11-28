@@ -17,6 +17,8 @@ package com.google.api.codegen;
 import com.google.api.Service;
 import com.google.api.codegen.config.GapicProductConfig;
 import com.google.api.codegen.config.PackageMetadataConfig;
+import com.google.api.codegen.configgen.ConfigHelper;
+import com.google.api.codegen.configgen.mergers.ProtoConfigMerger;
 import com.google.api.codegen.gapic.GapicGeneratorConfig;
 import com.google.api.codegen.gapic.GapicProvider;
 import com.google.api.codegen.gapic.MainGapicProviderFactory;
@@ -50,7 +52,6 @@ public abstract class GapicTestBase2 extends ConfigBaselineTestCase {
   private final String[] gapicConfigFileNames;
   @Nullable private final String packageConfigFileName;
   private final ImmutableList<String> snippetNames;
-  protected ConfigProto gapicConfig;
   protected PackageMetadataConfig packageConfig;
   private final String baselineFile;
 
@@ -77,9 +78,6 @@ public abstract class GapicTestBase2 extends ConfigBaselineTestCase {
   @Override
   protected void setupModel() {
     super.setupModel();
-    gapicConfig =
-        CodegenTestUtil.readConfig(
-            model.getDiagCollector(), getTestDataLocator(), gapicConfigFileNames);
     if (!Strings.isNullOrEmpty(packageConfigFileName)) {
       try {
         URI packageConfigUrl = getTestDataLocator().findTestData(packageConfigFileName).toURI();
@@ -157,6 +155,10 @@ public abstract class GapicTestBase2 extends ConfigBaselineTestCase {
       return null;
     }
 
+    ConfigHelper helper = new ConfigHelper(model.getDiagCollector(), gapicConfigFileNames[1]);
+    ProtoConfigMerger configMerger = new ProtoConfigMerger(model, helper);
+    ConfigProto gapicConfig =
+        CodegenTestUtil.readConfig(configMerger, getTestDataLocator(), gapicConfigFileNames);
     GapicProductConfig productConfig = GapicProductConfig.create(model, gapicConfig);
     if (productConfig == null) {
       for (Diag diag : model.getDiagCollector().getDiags()) {

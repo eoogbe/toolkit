@@ -17,6 +17,7 @@ package com.google.api.codegen.configgen;
 import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.codegen.configgen.nodes.ListItemConfigNode;
 import com.google.api.codegen.configgen.nodes.NullConfigNode;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 import com.google.common.collect.Iterables;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -50,8 +51,10 @@ public class NodeFinder {
     return ((ListItemConfigNode) childNode).getChild().isPresent();
   }
 
-  public static int getNextLine(ConfigNode node) {
-    return node.getChild().isPresent() ? getNextLine(node.getChild()) : node.getStartLine() + 1;
+  public static Source getNextSourceLine(ConfigNode node) {
+    return node.getChild().isPresent()
+        ? getNextSourceLine(node.getChild())
+        : Source.forNextLine(node.getSource());
   }
 
   public static ConfigNode getLastChild(ConfigNode parentNode) {

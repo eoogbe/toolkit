@@ -25,6 +25,7 @@ import com.google.api.codegen.configgen.nodes.FieldConfigNode;
 import com.google.api.codegen.configgen.nodes.ListItemConfigNode;
 import com.google.api.codegen.configgen.nodes.metadata.DefaultComment;
 import com.google.api.codegen.configgen.nodes.metadata.FixmeComment;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,7 +101,7 @@ public class MethodMerger {
       ConfigNode parentNode, InterfaceModel apiInterface, Map<String, String> collectionNameMap) {
     ConfigNode prevNode = NodeFinder.getLastChild(parentNode);
     FieldConfigNode methodsNode =
-        new FieldConfigNode(NodeFinder.getNextLine(prevNode), "methods")
+        new FieldConfigNode(NodeFinder.getNextSourceLine(prevNode), "methods")
             .setComment(new DefaultComment(METHODS_COMMENT));
     prevNode.insertNext(methodsNode);
     generateMethodsValueNode(methodsNode, apiInterface, collectionNameMap);
@@ -113,14 +114,13 @@ public class MethodMerger {
     return ListTransformer.generateList(
         apiInterface.getMethods(),
         parentNode,
-        (startLine, method) -> generateMethodNode(startLine, method, collectionNameMap));
+        (source, method) -> generateMethodNode(source, method, collectionNameMap));
   }
 
   private ListItemConfigNode generateMethodNode(
-      int startLine, MethodModel method, Map<String, String> collectionNameMap) {
-    ListItemConfigNode methodNode = new ListItemConfigNode(startLine);
-    ConfigNode nameNode =
-        FieldConfigNode.createStringPair(startLine, "name", method.getSimpleName());
+      Source source, MethodModel method, Map<String, String> collectionNameMap) {
+    ListItemConfigNode methodNode = new ListItemConfigNode(source);
+    ConfigNode nameNode = FieldConfigNode.createStringPair(source, "name", method.getSimpleName());
     methodNode.setChild(nameNode);
     ConfigNode prevNode = generateField(nameNode, method);
     prevNode = pageStreamingMerger.generatePageStreamingNode(prevNode, method);
@@ -128,7 +128,7 @@ public class MethodMerger {
     prevNode = generateFieldNamePatterns(prevNode, method, collectionNameMap);
     ConfigNode timeoutMillisNode =
         FieldConfigNode.createStringPair(
-                NodeFinder.getNextLine(prevNode), "timeout_millis", "60000")
+                NodeFinder.getNextSourceLine(prevNode), "timeout_millis", "60000")
             .setComment(new FixmeComment("Configure the default timeout for a non-retrying call."));
     prevNode.insertNext(timeoutMillisNode);
     return methodNode;
@@ -149,7 +149,7 @@ public class MethodMerger {
     }
 
     FieldConfigNode requiredFieldsNode =
-        new FieldConfigNode(NodeFinder.getNextLine(prevNode), "required_fields");
+        new FieldConfigNode(NodeFinder.getNextSourceLine(prevNode), "required_fields");
     requiredFieldsNode.setComment(new FixmeComment("Configure which fields are required."));
     ConfigNode requiredFieldsValueNode =
         ListTransformer.generateStringList(parameterList, requiredFieldsNode);
@@ -166,7 +166,7 @@ public class MethodMerger {
             && !method.getRequestStreaming();
     ConfigNode requestObjectMethodNode =
         FieldConfigNode.createStringPair(
-            NodeFinder.getNextLine(prevNode),
+            NodeFinder.getNextSourceLine(prevNode),
             "request_object_method",
             String.valueOf(requestObjectMethod));
     prevNode.insertNext(requestObjectMethodNode);
@@ -175,17 +175,18 @@ public class MethodMerger {
 
   private ConfigNode generateFlatteningNode(ConfigNode prevNode, List<String> parameterList) {
     ConfigNode flatteningNode =
-        new FieldConfigNode(NodeFinder.getNextLine(prevNode), "flattening")
+        new FieldConfigNode(NodeFinder.getNextSourceLine(prevNode), "flattening")
             .setComment(
                 new FixmeComment(
                     "Configure which groups of fields should be flattened into method params."));
     prevNode.insertNext(flatteningNode);
     ConfigNode flatteningGroupsNode =
-        new FieldConfigNode(NodeFinder.getNextLine(flatteningNode), "groups");
+        new FieldConfigNode(NodeFinder.getNextSourceLine(flatteningNode), "groups");
     flatteningNode.setChild(flatteningGroupsNode);
-    ConfigNode groupNode = new ListItemConfigNode(NodeFinder.getNextLine(flatteningGroupsNode));
+    ConfigNode groupNode =
+        new ListItemConfigNode(NodeFinder.getNextSourceLine(flatteningGroupsNode));
     flatteningGroupsNode.setChild(groupNode);
-    ConfigNode parametersNode = new FieldConfigNode(groupNode.getStartLine(), "parameters");
+    ConfigNode parametersNode = new FieldConfigNode(groupNode.getSource(), "parameters");
     groupNode.setChild(parametersNode);
     ListTransformer.generateStringList(parameterList, parametersNode);
     return flatteningNode;
@@ -194,13 +195,13 @@ public class MethodMerger {
   private ConfigNode generateFieldNamePatterns(
       ConfigNode prevNode, MethodModel method, final Map<String, String> nameMap) {
     ConfigNode fieldNamePatternsNode =
-        new FieldConfigNode(NodeFinder.getNextLine(prevNode), "field_name_patterns");
+        new FieldConfigNode(NodeFinder.getNextSourceLine(prevNode), "field_name_patterns");
     ConfigNode fieldNamePatternsValueNode =
         ListTransformer.generateList(
             method.getResourcePatternNameMap(nameMap).entrySet(),
             fieldNamePatternsNode,
-            (startLine, entry) ->
-                FieldConfigNode.createStringPair(startLine, entry.getKey(), entry.getValue()));
+            (source, entry) ->
+                FieldConfigNode.createStringPair(source, entry.getKey(), entry.getValue()));
     if (!fieldNamePatternsValueNode.isPresent()) {
       return prevNode;
     }

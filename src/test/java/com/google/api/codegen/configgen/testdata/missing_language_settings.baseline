@@ -1,0 +1,4 @@
+WARNING: missing_language_settings_gapic.yaml:16: (advice) language-settings: Missing language settings for key 'nodejs'.
+Did you mean:
+  nodejs:
+    package_name: library.v1

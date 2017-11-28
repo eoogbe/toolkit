@@ -117,7 +117,7 @@ public class ConfigYamlNodeReader {
       return null;
     }
 
-    return new FieldConfigNode(helper.getStartLine(keyNode), key).setChild(valueConfigNode);
+    return new FieldConfigNode(helper.getSource(keyNode), key).setChild(valueConfigNode);
   }
 
   private ConfigNode readMapNode(int prevLine, Node node, FieldDescriptor field) {
@@ -175,7 +175,7 @@ public class ConfigYamlNodeReader {
       return null;
     }
 
-    return new FieldConfigNode(helper.getStartLine(keyNode), key).setChild(valueConfigNode);
+    return new FieldConfigNode(helper.getSource(keyNode), key).setChild(valueConfigNode);
   }
 
   private ConfigNode readListNode(int prevLine, Node node, final FieldDescriptor field) {
@@ -184,7 +184,7 @@ public class ConfigYamlNodeReader {
     }
 
     if (!(node instanceof SequenceNode)) {
-      return new ListItemConfigNode(helper.getStartLine(node))
+      return new ListItemConfigNode(helper.getSource(node))
           .setChild(readSingularField(prevLine, node, field));
     }
 
@@ -192,7 +192,7 @@ public class ConfigYamlNodeReader {
     ConfigNode prev = new NullConfigNode();
     for (Node elem : ((SequenceNode) node).getValue()) {
       ConfigNode elemNode =
-          new ListItemConfigNode(helper.getStartLine(elem))
+          new ListItemConfigNode(helper.getSource(elem))
               .setChild(readSingularField(prevLine, elem, field));
       ConfigNode commentNode = readCommentNode(prevLine, elem, elemNode);
       prevLine = elem.getEndMark().getLine() + 1;
@@ -221,7 +221,7 @@ public class ConfigYamlNodeReader {
       return null;
     }
 
-    return new ScalarConfigNode(helper.getStartLine(node), ((ScalarNode) node).getValue());
+    return new ScalarConfigNode(helper.getSource(node), ((ScalarNode) node).getValue());
   }
 
   private ConfigNode readField(int prevLine, Node node, FieldDescriptor field) {
@@ -252,7 +252,7 @@ public class ConfigYamlNodeReader {
 
     List<String> commentLines = lines.subList(prevLine, startLine);
     String comment = Joiner.on(System.lineSeparator()).join(commentLines);
-    return new ScalarConfigNode(startLine + 1, comment).insertNext(configNode);
+    return new ScalarConfigNode(helper.getSource(startLine + 1), comment).insertNext(configNode);
   }
 
   private static boolean isEmpty(Node node) {

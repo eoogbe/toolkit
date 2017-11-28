@@ -81,6 +81,14 @@ public class CodeGeneratorTool {
             .argName("ENABLED_ARTIFACTS")
             .required(false)
             .build());
+    options.addOption(
+        Option.builder()
+            .longOpt("suppress_warning")
+            .desc("Optional. Names of adviser rules to suppress warnings for.")
+            .hasArg()
+            .argName("ADVICE_SUPPRESSORS")
+            .required(false)
+            .build());
 
     CommandLine cl = (new DefaultParser()).parse(options, args);
     if (cl.hasOption("help")) {
@@ -95,7 +103,8 @@ public class CodeGeneratorTool {
             cl.getOptionValues("gapic_yaml"),
             cl.getOptionValue("package_yaml"),
             cl.getOptionValue("output", ""),
-            cl.getOptionValues("enabled_artifacts"));
+            cl.getOptionValues("enabled_artifacts"),
+            cl.getOptionValues("suppress_warning"));
     System.exit(exitCode);
   }
 
@@ -105,7 +114,8 @@ public class CodeGeneratorTool {
       String[] generatorConfigs,
       String packageConfig,
       String outputDirectory,
-      String[] enabledArtifacts) {
+      String[] enabledArtifacts,
+      String[] adviceSuppressors) {
     ToolOptions options = ToolOptions.create();
     options.set(ToolOptions.DESCRIPTOR_SET, descriptorSet);
     options.set(ToolOptions.CONFIG_FILES, Lists.newArrayList(configs));
@@ -116,6 +126,11 @@ public class CodeGeneratorTool {
     if (enabledArtifacts != null) {
       options.set(CodeGeneratorApi.ENABLED_ARTIFACTS, Lists.newArrayList(enabledArtifacts));
     }
+
+    if (adviceSuppressors != null) {
+      options.set(CodeGeneratorApi.ADVICE_SUPPRESSORS, Lists.newArrayList(adviceSuppressors));
+    }
+
     CodeGeneratorApi codeGen = new CodeGeneratorApi(options);
     return codeGen.run();
   }

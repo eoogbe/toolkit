@@ -14,6 +14,7 @@
  */
 package com.google.api.codegen.configgen.nodes;
 
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 import com.google.common.truth.Truth;
 import org.junit.Test;
 
@@ -25,9 +26,9 @@ public class NullConfigNodeTest {
   }
 
   @Test
-  public void testGetStartLine() throws Exception {
+  public void testGetSource() throws Exception {
     NullConfigNode node = new NullConfigNode();
-    Truth.assertThat(node.getStartLine()).isEqualTo(0);
+    Truth.assertThat(node.getSource()).isEqualTo(Source.create(0, ""));
   }
 
   @Test
@@ -51,14 +52,14 @@ public class NullConfigNodeTest {
   @Test
   public void testSetChild() throws Exception {
     NullConfigNode node = new NullConfigNode();
-    ConfigNode child = new ScalarConfigNode(0, "foo");
+    ConfigNode child = new ScalarConfigNode(Source.create(0, "foo.yaml"), "foo");
     Truth.assertThat(node.setChild(child)).isSameAs(node);
   }
 
   @Test
   public void testInsertNext() throws Exception {
     NullConfigNode node = new NullConfigNode();
-    ConfigNode next = new ScalarConfigNode(0, "foo");
+    ConfigNode next = new ScalarConfigNode(Source.create(0, "foo.yaml"), "foo");
     Truth.assertThat(node.insertNext(next)).isSameAs(next);
   }
 }

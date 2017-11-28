@@ -14,20 +14,24 @@
  */
 package com.google.api.codegen.configgen.nodes;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import com.google.api.codegen.configgen.nodes.metadata.Source;
+
 /** Base class for the ConfigNode types. */
 public abstract class BaseConfigNode implements ConfigNode {
-  private final int startLine;
+  private final Source source;
   private final String text;
   private ConfigNode next = new NullConfigNode();
 
-  protected BaseConfigNode(int startLine, String text) {
-    this.startLine = startLine;
+  protected BaseConfigNode(Source source, String text) {
+    this.source = source;
     this.text = text;
   }
 
   @Override
-  public int getStartLine() {
-    return startLine;
+  public Source getSource() {
+    return source;
   }
 
   @Override
@@ -52,6 +56,12 @@ public abstract class BaseConfigNode implements ConfigNode {
 
   @Override
   public ConfigNode insertNext(ConfigNode next) {
+    checkArgument(this != next, "Cannot set node to be its own next");
+
+    if (this.next == next) {
+      return this;
+    }
+
     if (next != null) {
       this.next = next.insertNext(this.next);
     } else {

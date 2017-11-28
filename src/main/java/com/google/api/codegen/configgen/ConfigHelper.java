@@ -14,6 +14,8 @@
  */
 package com.google.api.codegen.configgen;
 
+import com.google.api.codegen.configgen.nodes.ConfigNode;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 import com.google.api.tools.framework.model.Diag;
 import com.google.api.tools.framework.model.DiagCollector;
 import com.google.api.tools.framework.model.Location;
@@ -38,39 +40,48 @@ public class ConfigHelper {
     return diag.getErrorCount();
   }
 
+  public String getCollectedErrors() {
+    return diag.toString();
+  }
+
   public void error(Node node, String message, Object... params) {
     error(node.getStartMark(), message, params);
   }
 
   public void error(Mark mark, String message, Object... params) {
-    error(getStartLine(mark), message, params);
+    error(getLocation(getStartLine(mark), fileName), message, params);
   }
 
-  public void error(int line, String message, Object... params) {
-    error(getLocation(line), message, params);
+  public void error(ConfigNode node, String message, Object... params) {
+    error(getLocation(node), message, params);
   }
 
   public void error(String message, Object... params) {
-    error(getLocation("?"), message, params);
+    error(getLocation("?", fileName), message, params);
   }
 
   public void error(Location location, String message, Object... params) {
     diag.addDiag(Diag.error(location, message, params));
   }
 
-  public int getStartLine(Node node) {
-    return getStartLine(node.getStartMark());
+  public Source getSource(Node node) {
+    return getSource(getStartLine(node.getStartMark()));
   }
 
-  public int getStartLine(Mark mark) {
+  public Source getSource(int startLine) {
+    return Source.create(startLine, fileName);
+  }
+
+  public Location getLocation(ConfigNode node) {
+    Source source = node.getSource();
+    return getLocation(source.startLine(), source.fileName());
+  }
+
+  private int getStartLine(Mark mark) {
     return mark.getLine() + 1;
   }
 
-  public Location getLocation(int line) {
-    return getLocation(line);
-  }
-
-  private Location getLocation(Object line) {
+  private Location getLocation(Object line, String fileName) {
     return new SimpleLocation(String.format("%s:%s", fileName, line), fileName);
   }
 }

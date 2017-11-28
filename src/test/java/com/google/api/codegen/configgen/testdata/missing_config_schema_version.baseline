@@ -1,0 +1,1 @@
+ERROR: missing_config_schema_version_gapic.yaml:2: Expected a field 'config_schema_version' specifying the configuration schema version in root object.

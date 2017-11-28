@@ -14,8 +14,9 @@
  */
 package com.google.api.codegen;
 
+import com.google.api.codegen.configgen.ConfigHelper;
+import com.google.api.codegen.configgen.mergers.ProtoConfigMerger;
 import com.google.api.codegen.discogapic.DiscoGapicProvider;
-import com.google.api.tools.framework.model.SimpleDiagCollector;
 import com.google.api.tools.framework.model.testing.ConfigBaselineTestCase;
 import com.google.api.tools.framework.snippet.Doc;
 import com.google.common.io.Files;
@@ -76,9 +77,9 @@ public abstract class DiscoGapicTestBase extends ConfigBaselineTestCase {
       throw new IllegalArgumentException("Problem creating DiscoGapic generator.");
     }
 
-    config =
-        CodegenTestUtil.readConfig(
-            new SimpleDiagCollector(), getTestDataLocator(), gapicConfigFileNames);
+    ConfigHelper helper = new ConfigHelper(model.getDiagCollector(), gapicConfigFileNames[1]);
+    ProtoConfigMerger configMerger = new ProtoConfigMerger(model, helper);
+    config = CodegenTestUtil.readConfig(configMerger, getTestDataLocator(), gapicConfigFileNames);
     if (config == null) {
       throw new IllegalArgumentException("Problem fetching or parsing Gapic config files.");
     }

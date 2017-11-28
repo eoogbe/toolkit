@@ -14,10 +14,12 @@
  */
 package com.google.api.codegen;
 
-import com.google.api.codegen.advising.Adviser;
 import com.google.api.codegen.config.GapicProductConfig;
 import com.google.api.codegen.config.PackageMetadataConfig;
+import com.google.api.codegen.configgen.Adviser;
+import com.google.api.codegen.configgen.ConfigHelper;
 import com.google.api.codegen.configgen.MessageGenerator;
+import com.google.api.codegen.configgen.MultiConfigYamlReader;
 import com.google.api.codegen.configgen.mergers.ProtoConfigMerger;
 import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.codegen.gapic.GapicGeneratorConfig;
@@ -78,7 +80,7 @@ public class CodeGeneratorApi extends ToolDriverBase {
   public static final Option<List<String>> ADVICE_SUPPRESSORS =
       ToolOptions.createOption(
           new TypeLiteral<List<String>>() {},
-          "supress_warning",
+          "suppress_warning",
           "Names of adviser rules to suppress warnings for.",
           ImmutableList.<String>of());
 
@@ -105,19 +107,26 @@ public class CodeGeneratorApi extends ToolDriverBase {
 
     model.establishStage(Merged.KEY);
 
-    ConfigProto configProto = loadConfigFromFiles(configFileNames);
-    if (configProto == null) {
+    ConfigNode configNode = loadConfigFromFiles(configFileNames);
+    if (configNode == null) {
       return;
     }
 
     List<String> adviceSuppressors = options.get(ADVICE_SUPPRESSORS);
     Adviser adviser = new Adviser(adviceSuppressors);
-    adviser.advise(model, configProto);
+    adviser.advise(model.getDiagCollector(), configNode);
 
     if (model.getDiagCollector().getErrorCount() > 0) {
       for (Diag diag : model.getDiagCollector().getDiags()) {
         System.err.println(diag.toString());
       }
+      return;
+    }
+
+    MessageGenerator messageGenerator = new MessageGenerator(ConfigProto.newBuilder());
+    messageGenerator.visit(configNode.getChild());
+    ConfigProto configProto = (ConfigProto) messageGenerator.getValue();
+    if (configProto == null || configProto.equals(ConfigProto.getDefaultInstance())) {
       return;
     }
 
@@ -190,24 +199,15 @@ public class CodeGeneratorApi extends ToolDriverBase {
     return provider;
   }
 
-  private ConfigProto loadConfigFromFiles(List<String> configFileNames) {
+  private ConfigNode loadConfigFromFiles(List<String> configFileNames) {
     List<File> configFiles = pathsToFiles(configFileNames);
     if (model.getDiagCollector().getErrorCount() > 0) {
       return null;
     }
 
-    ProtoConfigMerger configMerger = new ProtoConfigMerger();
-    MessageGenerator messageGenerator = new MessageGenerator(ConfigProto.newBuilder());
-    for (File file : configFiles) {
-      ConfigNode configNode = configMerger.mergeConfig(model, file);
-      messageGenerator.visit(configNode.getChild());
-    }
-    ConfigProto configProto = (ConfigProto) messageGenerator.getValue();
-    if (configProto == null || configProto.equals(ConfigProto.getDefaultInstance())) {
-      return null;
-    }
-
-    return configProto;
+    ConfigHelper helper = new ConfigHelper(model.getDiagCollector(), configFiles.get(0).getName());
+    ProtoConfigMerger configMerger = new ProtoConfigMerger(model, helper);
+    return new MultiConfigYamlReader().readConfigNode(configMerger, configFiles);
   }
 
   private List<File> pathsToFiles(List<String> configFileNames) {

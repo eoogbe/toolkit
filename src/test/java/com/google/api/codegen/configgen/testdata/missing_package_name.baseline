@@ -1,0 +1,4 @@
+WARNING: missing_package_name_gapic.yaml:17: (advice) language-settings: Missing 'package_name' in language settings of key 'nodejs'.
+Did you mean:
+  package_name:
+    library.v1

@@ -16,6 +16,7 @@ package com.google.api.codegen.configgen;
 
 import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.codegen.configgen.nodes.FieldConfigNode;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.truth.Truth;
 import java.util.Arrays;
@@ -26,13 +27,13 @@ import org.junit.Test;
 public class MissingFieldTransformerTest {
   @Test
   public void testPrepend() throws Exception {
-    ConfigNode parent = new FieldConfigNode(0, "parent");
+    ConfigNode parent = new FieldConfigNode(Source.create(0, "foo.yaml"), "parent");
     Map<String, String> fields = ImmutableMap.of("B", "2", "C", "3");
     ListTransformer.generateList(
         fields.entrySet(),
         parent,
-        (startLine, entry) ->
-            FieldConfigNode.createStringPair(startLine, entry.getKey(), entry.getValue()));
+        (source, entry) ->
+            FieldConfigNode.createStringPair(source, entry.getKey(), entry.getValue()));
     MissingFieldTransformer.prepend("A", parent).generate();
     List<String> fieldNames = Arrays.asList("A", "B", "C");
     int index = 0;
@@ -43,14 +44,14 @@ public class MissingFieldTransformerTest {
 
   @Test
   public void testInsert() throws Exception {
-    ConfigNode parent = new FieldConfigNode(0, "parent");
+    ConfigNode parent = new FieldConfigNode(Source.create(0, "foo.yaml"), "parent");
     Map<String, String> fields = ImmutableMap.of("A", "1", "C", "3");
     ConfigNode fieldA =
         ListTransformer.generateList(
             fields.entrySet(),
             parent,
-            (startLine, entry) ->
-                FieldConfigNode.createStringPair(startLine, entry.getKey(), entry.getValue()));
+            (source, entry) ->
+                FieldConfigNode.createStringPair(source, entry.getKey(), entry.getValue()));
     MissingFieldTransformer.insert("B", parent, fieldA).generate();
     List<String> fieldNames = Arrays.asList("A", "B", "C");
     int index = 0;
@@ -61,13 +62,13 @@ public class MissingFieldTransformerTest {
 
   @Test
   public void testAppend() throws Exception {
-    ConfigNode parent = new FieldConfigNode(0, "parent");
+    ConfigNode parent = new FieldConfigNode(Source.create(0, "foo.yaml"), "parent");
     Map<String, String> fields = ImmutableMap.of("A", "1", "B", "2");
     ListTransformer.generateList(
         fields.entrySet(),
         parent,
-        (startLine, entry) ->
-            FieldConfigNode.createStringPair(startLine, entry.getKey(), entry.getValue()));
+        (source, entry) ->
+            FieldConfigNode.createStringPair(source, entry.getKey(), entry.getValue()));
     MissingFieldTransformer.append("C", parent).generate();
     List<String> fieldNames = Arrays.asList("A", "B", "C");
     int index = 0;

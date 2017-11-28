@@ -25,57 +25,54 @@ import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.tools.framework.model.Interface;
 import com.google.api.tools.framework.model.Model;
 import com.google.protobuf.Api;
-import java.io.File;
+import java.util.List;
 
 /** Merges the gapic config from a proto Model into a ConfigNode. */
-public class ProtoConfigMerger {
-  public ConfigNode mergeConfig(Model model, String fileName) {
-    CollectionMerger collectionMerger = new CollectionMerger();
-    RetryMerger retryMerger = new RetryMerger();
-    PagingParameters pagingParameters = new ProtoPagingParameters();
-    ConfigHelper helper = new ConfigHelper(model.getDiagCollector(), fileName);
-    PageStreamingMerger pageStreamingMerger =
-        new PageStreamingMerger(new ProtoPageStreamingTransformer(), pagingParameters, helper);
-    MethodMerger methodMerger =
-        new MethodMerger(retryMerger, pageStreamingMerger, pagingParameters);
-    LanguageSettingsMerger languageSettingsMerger = new LanguageSettingsMerger();
-    InterfaceTransformer interfaceTranformer = new ProtoInterfaceTransformer();
-    InterfaceMerger interfaceMerger =
-        new InterfaceMerger(collectionMerger, retryMerger, methodMerger, interfaceTranformer);
-    String packageName = getPackageName(model, helper);
+public class ProtoConfigMerger implements ModelConfigMerger {
+  private final Model model;
+  private final ConfigHelper helper;
+
+  public ProtoConfigMerger(Model model, ConfigHelper helper) {
+    this.model = model;
+    this.helper = helper;
+  }
+
+  @Override
+  public ConfigHelper getHelper() {
+    return helper;
+  }
+
+  @Override
+  public ConfigNode mergeInitial() {
+    return createConfigMerger().mergeInitial(new ProtoApiModel(model));
+  }
+
+  @Override
+  public ConfigNode mergeRefresh(List<ConfigNode> configNodes) {
+    return createConfigMerger().mergeRefresh(new ProtoApiModel(model), configNodes);
+  }
+
+  private ConfigMerger createConfigMerger() {
+    String packageName = getPackageName();
     if (packageName == null) {
       return null;
     }
 
-    ConfigMerger configMerger =
-        new ConfigMerger(languageSettingsMerger, interfaceMerger, packageName, helper);
-    return configMerger.mergeConfig(new ProtoApiModel(model));
-  }
-
-  public ConfigNode mergeConfig(Model model, File file) {
     CollectionMerger collectionMerger = new CollectionMerger();
     RetryMerger retryMerger = new RetryMerger();
     PagingParameters pagingParameters = new ProtoPagingParameters();
-    ConfigHelper helper = new ConfigHelper(model.getDiagCollector(), file.getName());
     PageStreamingMerger pageStreamingMerger =
         new PageStreamingMerger(new ProtoPageStreamingTransformer(), pagingParameters, helper);
     MethodMerger methodMerger =
         new MethodMerger(retryMerger, pageStreamingMerger, pagingParameters);
-    LanguageSettingsMerger languageSettingsMerger = new LanguageSettingsMerger();
+    LanguageSettingsMerger languageSettingsMerger = new LanguageSettingsMerger(helper);
     InterfaceTransformer interfaceTranformer = new ProtoInterfaceTransformer();
     InterfaceMerger interfaceMerger =
         new InterfaceMerger(collectionMerger, retryMerger, methodMerger, interfaceTranformer);
-    String packageName = getPackageName(model, helper);
-    if (packageName == null) {
-      return null;
-    }
-
-    ConfigMerger configMerger =
-        new ConfigMerger(languageSettingsMerger, interfaceMerger, packageName, helper);
-    return configMerger.mergeConfig(new ProtoApiModel(model), file);
+    return new ConfigMerger(languageSettingsMerger, interfaceMerger, packageName, helper);
   }
 
-  private String getPackageName(Model model, ConfigHelper helper) {
+  private String getPackageName() {
     if (model.getServiceConfig().getApisCount() > 0) {
       Api api = model.getServiceConfig().getApis(0);
       Interface apiInterface = model.getSymbolTable().lookupInterface(api.getName());

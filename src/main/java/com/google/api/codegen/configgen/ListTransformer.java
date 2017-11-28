@@ -18,6 +18,7 @@ import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.codegen.configgen.nodes.ListItemConfigNode;
 import com.google.api.codegen.configgen.nodes.NullConfigNode;
 import com.google.api.codegen.configgen.nodes.ScalarConfigNode;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 
 /** Transforms an Iterable of arbitrary elements into a linked list of ConfigNodes. */
 public class ListTransformer {
@@ -28,8 +29,8 @@ public class ListTransformer {
     return generateList(
         elements,
         parentNode,
-        (startLine, element) ->
-            new ListItemConfigNode(startLine).setChild(new ScalarConfigNode(startLine, element)));
+        (source, element) ->
+            new ListItemConfigNode(source).setChild(new ScalarConfigNode(source, element)));
   }
 
   /**
@@ -43,8 +44,8 @@ public class ListTransformer {
     ConfigNode elementNode = new NullConfigNode();
     ConfigNode prev = null;
     for (T elem : elements) {
-      int startLine = NodeFinder.getNextLine(prev == null ? parentNode : prev);
-      ConfigNode node = elementTransformer.generateElement(startLine, elem);
+      Source source = NodeFinder.getNextSourceLine(prev == null ? parentNode : prev);
+      ConfigNode node = elementTransformer.generateElement(source, elem);
 
       if (node == null) {
         continue;
@@ -67,6 +68,6 @@ public class ListTransformer {
 
   /** Transforms an element into a ConfigNode in the list. */
   public interface ElementTransformer<T> {
-    ConfigNode generateElement(int startLine, T element);
+    ConfigNode generateElement(Source source, T element);
   }
 }

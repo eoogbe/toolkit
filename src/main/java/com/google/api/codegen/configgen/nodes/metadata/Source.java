@@ -12,14 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.api.codegen.advising;
+package com.google.api.codegen.configgen.nodes.metadata;
 
-import com.google.api.codegen.ConfigProto;
-import com.google.api.tools.framework.model.Model;
-import java.util.List;
+import com.google.auto.value.AutoValue;
 
-public interface AdviserRule {
-  String getName();
+/** Represents the source location of a ConfigNode. */
+@AutoValue
+public abstract class Source {
+  public abstract int startLine();
 
-  List<String> collectAdvice(Model model, ConfigProto configProto);
+  public abstract String fileName();
+
+  public static Source forNextLine(Source source) {
+    return create(source.startLine() + 1, source.fileName());
+  }
+
+  public static Source create(int startLine, String fileName) {
+    return new AutoValue_Source(startLine, fileName);
+  }
 }

@@ -14,11 +14,10 @@
  */
 package com.google.api.codegen;
 
-import com.google.api.codegen.configgen.ConfigHelper;
-import com.google.api.codegen.configgen.ConfigYamlReader;
 import com.google.api.codegen.configgen.MessageGenerator;
+import com.google.api.codegen.configgen.MultiConfigYamlReader;
+import com.google.api.codegen.configgen.mergers.ModelConfigMerger;
 import com.google.api.codegen.configgen.nodes.ConfigNode;
-import com.google.api.tools.framework.model.DiagCollector;
 import com.google.api.tools.framework.model.Model;
 import com.google.api.tools.framework.model.stages.Merged;
 import com.google.api.tools.framework.model.testing.TestConfig;
@@ -27,7 +26,9 @@ import com.google.api.tools.framework.setup.StandardSetup;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.rules.TemporaryFolder;
 
 public class CodegenTestUtil {
@@ -44,32 +45,34 @@ public class CodegenTestUtil {
   }
 
   public static ConfigProto readConfig(
-      DiagCollector diagCollector, TestDataLocator testDataLocator, String[] gapicConfigFileNames) {
-    ConfigYamlReader yamlReader = new ConfigYamlReader();
+      ModelConfigMerger configMerger,
+      TestDataLocator testDataLocator,
+      String[] gapicConfigFileNames) {
+    List<File> configFiles = pathsToFiles(testDataLocator, gapicConfigFileNames);
+    ConfigNode configNode = new MultiConfigYamlReader().readConfigNode(configMerger, configFiles);
+    if (configMerger.getHelper().getErrorCount() > 0) {
+      System.err.println(configMerger.getHelper().getCollectedErrors());
+      return null;
+    }
+
     MessageGenerator messageGenerator = new MessageGenerator(ConfigProto.newBuilder());
-    for (String gapicConfigFileName : gapicConfigFileNames) {
-      URL gapicConfigUrl = testDataLocator.findTestData(gapicConfigFileName);
-      File gapicConfigFile = null;
+    messageGenerator.visit(configNode.getChild());
+    return (ConfigProto) messageGenerator.getValue();
+  }
+
+  public static List<File> pathsToFiles(TestDataLocator testDataLocator, String[] configFileNames) {
+    List<File> files = new ArrayList<>();
+    for (String configFileName : configFileNames) {
+      URL configUrl = testDataLocator.findTestData(configFileName);
+      File configFile = null;
       try {
-        gapicConfigFile = new File(gapicConfigUrl.toURI());
+        configFile = new File(configUrl.toURI());
       } catch (URISyntaxException e) {
         continue;
       }
 
-      ConfigHelper helper = new ConfigHelper(diagCollector, gapicConfigFile.getName());
-      ConfigNode configNode = yamlReader.generateConfigNode(gapicConfigFile, helper);
-      if (configNode == null) {
-        continue;
-      }
-
-      messageGenerator.visit(configNode.getChild());
+      files.add(configFile);
     }
-
-    if (diagCollector.getErrorCount() > 0) {
-      System.err.println(diagCollector.toString());
-      return null;
-    }
-
-    return (ConfigProto) messageGenerator.getValue();
+    return files;
   }
 }

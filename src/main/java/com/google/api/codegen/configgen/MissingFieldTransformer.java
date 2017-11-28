@@ -16,6 +16,7 @@ package com.google.api.codegen.configgen;
 
 import com.google.api.codegen.configgen.nodes.ConfigNode;
 import com.google.api.codegen.configgen.nodes.FieldConfigNode;
+import com.google.api.codegen.configgen.nodes.metadata.Source;
 
 /** Generates a FieldConfigNode if missing from its parent. */
 public class MissingFieldTransformer {
@@ -79,12 +80,12 @@ public class MissingFieldTransformer {
 
     if (prev == null) {
       ConfigNode next = parent.getChild();
-      int startLine = next.isPresent() ? next.getStartLine() : parent.getStartLine() + 1;
-      node = new FieldConfigNode(startLine, name);
+      Source source = next.isPresent() ? next.getSource() : Source.forNextLine(parent.getSource());
+      node = new FieldConfigNode(source, name);
       parent.setChild(node.insertNext(next));
     } else {
       ConfigNode next = node.getNext();
-      node = new FieldConfigNode(NodeFinder.getNextLine(prev), name);
+      node = new FieldConfigNode(NodeFinder.getNextSourceLine(prev), name);
       prev.insertNext(node.insertNext(next));
     }
 

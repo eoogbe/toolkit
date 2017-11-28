@@ -14,14 +14,18 @@
  */
 package com.google.api.codegen.configgen.nodes.metadata;
 
-/** Represents comment metadata for a ConfigNode. */
-public interface Comment {
-  enum Type {
-    NONE,
-    INITIAL,
-    REFRESH
+/** Represents an advice rule. */
+public enum Rule {
+  LANGUAGE_SETTINGS("language-settings");
+
+  private final String name;
+
+  private Rule(String name) {
+    this.name = name;
   }
 
-  /** Generates the String representation of this. */
-  String generate(Type type);
+  @Override
+  public String toString() {
+    return name;
+  }
 }

@@ -27,8 +27,8 @@ public class FixmeComment implements Comment {
   }
 
   @Override
-  public String generate() {
-    String text = comment.generate();
+  public String generate(Type type) {
+    String text = comment.generate(type);
     return text.isEmpty() ? "" : "FIXME: " + text;
   }
 }

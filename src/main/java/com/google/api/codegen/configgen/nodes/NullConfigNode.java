@@ -14,11 +14,13 @@
  */
 package com.google.api.codegen.configgen.nodes;
 
+import com.google.api.codegen.configgen.nodes.metadata.Source;
+
 /** Implements the Null Object Pattern for ConfigNode. */
 public class NullConfigNode implements ConfigNode {
   @Override
-  public int getStartLine() {
-    return 0;
+  public Source getSource() {
+    return Source.create(0, "");
   }
 
   @Override

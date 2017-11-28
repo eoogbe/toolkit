@@ -17,7 +17,6 @@ package com.google.api.codegen.configgen.mergers;
 import com.google.api.codegen.ConfigProto;
 import com.google.api.codegen.config.ApiModel;
 import com.google.api.codegen.configgen.ConfigHelper;
-import com.google.api.codegen.configgen.ConfigYamlReader;
 import com.google.api.codegen.configgen.MissingFieldTransformer;
 import com.google.api.codegen.configgen.NodeFinder;
 import com.google.api.codegen.configgen.nodes.ConfigNode;
@@ -25,7 +24,11 @@ import com.google.api.codegen.configgen.nodes.FieldConfigNode;
 import com.google.api.codegen.configgen.nodes.ScalarConfigNode;
 import com.google.api.codegen.configgen.nodes.metadata.DefaultComment;
 import com.google.api.codegen.configgen.nodes.metadata.FixmeComment;
-import java.io.File;
+import com.google.common.collect.ImmutableList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /** Merges the gapic config from an ApiModel into a ConfigNode. */
 public class ConfigMerger {
@@ -55,8 +58,9 @@ public class ConfigMerger {
     this.helper = helper;
   }
 
-  public ConfigNode mergeConfig(ApiModel model) {
-    FieldConfigNode configNode = mergeConfig(model, new FieldConfigNode(0, ""));
+  public ConfigNode mergeInitial(ApiModel model) {
+    FieldConfigNode configNode =
+        mergeConfig(model, ImmutableList.of(new FieldConfigNode(helper.getSource(0), "")));
     if (configNode == null) {
       return null;
     }
@@ -64,16 +68,12 @@ public class ConfigMerger {
     return configNode.setComment(new FixmeComment(CONFIG_COMMENT));
   }
 
-  public ConfigNode mergeConfig(ApiModel model, File file) {
-    FieldConfigNode configNode = new ConfigYamlReader().generateConfigNode(file, helper);
-    if (configNode == null) {
-      return null;
-    }
-
-    return mergeConfig(model, configNode);
+  public ConfigNode mergeRefresh(ApiModel model, List<ConfigNode> configNodes) {
+    return mergeConfig(model, configNodes);
   }
 
-  private FieldConfigNode mergeConfig(ApiModel model, FieldConfigNode configNode) {
+  private FieldConfigNode mergeConfig(ApiModel model, List<ConfigNode> configNodes) {
+    FieldConfigNode configNode = (FieldConfigNode) mergeNodes(configNodes);
     ConfigNode typeNode = mergeType(configNode);
     if (typeNode == null) {
       return null;
@@ -93,10 +93,41 @@ public class ConfigMerger {
     return configNode;
   }
 
+  private ConfigNode mergeNodes(List<ConfigNode> configNodes) {
+    Map<String, ConfigNode> nodes = new LinkedHashMap<>();
+    for (ConfigNode configNode : configNodes) {
+      for (ConfigNode child : NodeFinder.getChildren(configNode)) {
+        ConfigNode node = nodes.get(child.getText());
+        if (node == null) {
+          nodes.put(child.getText(), child);
+        } else {
+          nodes.replace(child.getText(), mergeNodes(Arrays.asList(node, child)));
+        }
+      }
+    }
+
+    ConfigNode configNode = configNodes.get(0);
+    ConfigNode prevNode = null;
+    for (ConfigNode node : nodes.values()) {
+      if (prevNode == null) {
+        prevNode = node;
+      } else {
+        prevNode.insertNext(node);
+        prevNode = prevNode.getNext();
+      }
+    }
+
+    if (!nodes.isEmpty()) {
+      configNode.setChild(nodes.values().iterator().next());
+    }
+
+    return configNode;
+  }
+
   private ConfigNode mergeType(ConfigNode configNode) {
     FieldConfigNode typeNode = MissingFieldTransformer.prepend("type", configNode).generate();
-    if (!NodeFinder.hasChild(typeNode)) {
-      return typeNode.setChild(new ScalarConfigNode(typeNode.getStartLine(), CONFIG_PROTO_TYPE));
+    if (!NodeFinder.hasChild(typeNode) && !NodeFinder.hasChild(configNode)) {
+      return typeNode.setChild(new ScalarConfigNode(typeNode.getSource(), CONFIG_PROTO_TYPE));
     }
 
     String type = typeNode.getChild().getText();
@@ -104,17 +135,22 @@ public class ConfigMerger {
       return typeNode;
     }
 
-    helper.error(
-        typeNode.getStartLine(), "The specified configuration type '%s' is unknown.", type);
+    if (type.isEmpty()) {
+      helper.error(
+          typeNode, "Expected a field 'type' specifying the configuration type in root object.");
+    } else {
+      helper.error(typeNode, "The specified configuration type '%s' is unknown.", type);
+    }
+
     return null;
   }
 
   private ConfigNode mergeVersion(ConfigNode configNode, ConfigNode prevNode) {
     FieldConfigNode versionNode =
         MissingFieldTransformer.insert("config_schema_version", configNode, prevNode).generate();
-    if (!NodeFinder.hasChild(versionNode)) {
+    if (!NodeFinder.hasChild(versionNode) && !NodeFinder.hasChild(configNode)) {
       return versionNode.setChild(
-          new ScalarConfigNode(versionNode.getStartLine(), CONFIG_SCHEMA_VERSION));
+          new ScalarConfigNode(versionNode.getSource(), CONFIG_SCHEMA_VERSION));
     }
 
     String version = versionNode.getChild().getText();
@@ -122,10 +158,16 @@ public class ConfigMerger {
       return versionNode;
     }
 
-    helper.error(
-        versionNode.getStartLine(),
-        "The specified configuration schema version '%s' is unsupported.",
-        version);
+    if (version.isEmpty()) {
+      helper.error(
+          versionNode,
+          "Expected a field 'config_schema_version' specifying the configuration schema version "
+              + "in root object.");
+    } else {
+      helper.error(
+          versionNode, "The specified configuration schema version '%s' is unsupported.", version);
+    }
+
     return null;
   }
 
@@ -139,13 +181,13 @@ public class ConfigMerger {
 
     FieldConfigNode copyrightFileNode =
         FieldConfigNode.createStringPair(
-                NodeFinder.getNextLine(licenseHeaderNode),
+                NodeFinder.getNextSourceLine(licenseHeaderNode),
                 "copyright_file",
                 CONFIG_DEFAULT_COPYRIGHT_FILE)
             .setComment(new DefaultComment("The file containing the copyright line(s)."));
     FieldConfigNode licenseFileNode =
         FieldConfigNode.createStringPair(
-                NodeFinder.getNextLine(copyrightFileNode),
+                NodeFinder.getNextSourceLine(copyrightFileNode),
                 "license_file",
                 CONFIG_DEFAULT_LICENSE_FILE)
             .setComment(
