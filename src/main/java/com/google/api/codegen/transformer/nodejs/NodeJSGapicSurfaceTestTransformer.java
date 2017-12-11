@@ -191,26 +191,43 @@ public class NodeJSGapicSurfaceTestTransformer implements ModelToViewTransformer
               .valueGenerator(valueGenerator)
               .build();
 
+      OptionalArrayMethodView apiMethod =
+          createUnitTestCaseApiMethodView(methodContext, initCodeContext);
       testCaseViews.add(
           testCaseTransformer.createTestCaseView(
-              methodContext,
-              testNameTable,
-              initCodeContext,
-              getMethodType(methodContext.getMethodConfig())));
+              methodContext, testNameTable, initCodeContext, apiMethod));
     }
     return testCaseViews;
   }
 
+  private OptionalArrayMethodView createUnitTestCaseApiMethodView(
+      GapicMethodContext methodContext, InitCodeContext initCodeContext) {
+    OptionalArrayMethodView initialApiMethodView =
+        new DynamicLangApiMethodTransformer(new NodeJSApiMethodParamTransformer())
+            .generateMethod(methodContext);
+    OptionalArrayMethodView.Builder apiMethodView = initialApiMethodView.toBuilder();
+    apiMethodView.type(getMethodType(methodContext.getMethodConfig()));
+    InitCodeTransformer initCodeTransformer = new InitCodeTransformer();
+    InitCodeView initCode = initCodeTransformer.generateInitCode(methodContext, initCodeContext);
+    apiMethodView.initCode(initCode);
+    apiMethodView.hasRequestParameters(!initCode.lines().isEmpty());
+    return apiMethodView.build();
+  }
+
   private ClientMethodType getMethodType(MethodConfig config) {
-    ClientMethodType clientMethodType = ClientMethodType.RequestObjectMethod;
     if (config.isPageStreaming()) {
-      clientMethodType = ClientMethodType.PagedRequestObjectMethod;
-    } else if (config.isGrpcStreaming()) {
-      clientMethodType = ClientMethodType.AsyncRequestObjectMethod;
-    } else if (config.isLongRunningOperation()) {
-      clientMethodType = ClientMethodType.OperationCallableMethod;
+      return ClientMethodType.PagedRequestObjectMethod;
     }
-    return clientMethodType;
+
+    if (config.isGrpcStreaming()) {
+      return ClientMethodType.AsyncRequestObjectMethod;
+    }
+
+    if (config.isLongRunningOperation()) {
+      return ClientMethodType.OperationCallableMethod;
+    }
+
+    return ClientMethodType.RequestObjectMethod;
   }
 
   private List<ViewModel> createSmokeTestViews(ApiModel model, GapicProductConfig productConfig) {
@@ -237,7 +254,6 @@ public class NodeJSGapicSurfaceTestTransformer implements ModelToViewTransformer
         context.asFlattenedMethodContext(method, flatteningGroup);
 
     SmokeTestClassView.Builder testClass = SmokeTestClassView.newBuilder();
-    TestCaseView testCaseView = testCaseTransformer.createSmokeTestCaseView(flattenedMethodContext);
     OptionalArrayMethodView apiMethodView =
         createSmokeTestCaseApiMethodView(flattenedMethodContext, packageHasMultipleServices);
 
@@ -247,7 +263,6 @@ public class NodeJSGapicSurfaceTestTransformer implements ModelToViewTransformer
     testClass.outputPath(namer.getSourceFilePath(SMOKE_TEST_OUTPUT_BASE_PATH, name));
     testClass.templateFileName(SMOKE_TEST_TEMPLATE_FILE);
     testClass.apiMethod(apiMethodView);
-    testClass.method(testCaseView);
     testClass.requireProjectId(
         testCaseTransformer.requireProjectIdInSmokeTest(
             apiMethodView.initCode(), context.getNamer()));

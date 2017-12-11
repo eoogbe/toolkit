@@ -68,7 +68,7 @@
 @end
 
 @private testCase(test)
-    @switch test.grpcStreamingType
+    @switch test.apiMethod.grpcStreamingType
     @case "BidiStreaming"
         {@bidiStreamingTestCase(test)}
     @case "ServerStreaming"
@@ -76,7 +76,7 @@
     @case "NonStreaming"
         {@nonStreamingOptionalArrayTestCase(test)}
     @default
-        $unhandled case: {@test.grpcStreamingType}$
+        $unhandled case: {@test.apiMethod.grpcStreamingType}$
     @end
 @end
 
@@ -128,7 +128,7 @@
             {@initCode(initCodeItem, "client")}
         @end
 
-        $bidi = $client->{@test.clientMethodName}();
+        $bidi = $client->{@test.apiMethod.name}();
         $this->assertInstanceOf(BidiStream::class, $bidi);
 
         $bidi->write($request);
@@ -179,7 +179,7 @@
 
         $this->assertTrue($grpcStub->isExhausted());
 
-        $bidi = $client->{@test.clientMethodName}();
+        $bidi = $client->{@test.apiMethod.name}();
         $results = $bidi->closeWriteAndReadAll();
 
         try {
@@ -212,9 +212,9 @@
         {@responseInitCodeStreaming(test.grpcStreamingView.responseInitCodeList)}
 
         // Mock request
-        {@initCode(test.initCode, "client")}
+        {@initCode(test.apiMethod.initCode, "client")}
 
-        $serverStream = $client->{@test.clientMethodName}({@sampleMethodCallArgList(test.initCode)});
+        $serverStream = $client->{@test.apiMethod.name}({@sampleMethodCallArgList(test.apiMethod.initCode)});
         $this->assertInstanceOf(ServerStream::class, $serverStream);
 
         $responses = iterator_to_array($serverStream->readAll());
@@ -241,9 +241,9 @@
         $this->assertTrue($grpcStub->isExhausted());
 
         // Mock request
-        {@initCode(test.initCode, "client")}
+        {@initCode(test.apiMethod.initCode, "client")}
 
-        $serverStream = $client->{@test.clientMethodName}({@sampleMethodCallArgList(test.initCode)});
+        $serverStream = $client->{@test.apiMethod.name}({@sampleMethodCallArgList(test.apiMethod.initCode)});
         $results = $serverStream->readAll();
 
         try {
@@ -262,7 +262,7 @@
 @end
 
 @private nonStreamingOptionalArrayTestCase(test)
-    @switch test.clientMethodType
+    @switch test.apiMethod.type
     @case "OptionalArrayMethod"
         {@simpleTestCase(test)}
         {@simpleExceptionTestCase(test)}
@@ -273,7 +273,7 @@
         {@lroTestCase(test)}
         {@lroExceptionTestCase(test)}
     @default
-        $unhandled case: {@test.clientMethodType}$
+        $unhandled case: {@test.apiMethod.type}$
     @end
 @end
 
@@ -297,11 +297,11 @@
     public function {@test.name}()
     {
         {@singleCallTestSetup(test)}
-        @if test.hasReturnValue
-            $response = $client->{@test.clientMethodName}({@sampleMethodCallArgList(test.initCode)});
+        @if test.apiMethod.hasReturnValue
+            $response = $client->{@test.apiMethod.name}({@sampleMethodCallArgList(test.apiMethod.initCode)});
             $this->assertEquals($expectedResponse, $response);
         @else
-            $client->{@test.clientMethodName}({@sampleMethodCallArgList(test.initCode)});
+            $client->{@test.apiMethod.name}({@sampleMethodCallArgList(test.apiMethod.initCode)});
         @end
         {@singleCallSuccessAsserts(test)}
 
@@ -316,7 +316,7 @@
     public function {@test.name}()
     {
         {@singleCallTestSetup(test)}
-        $response = $client->{@test.clientMethodName}({@sampleMethodCallArgList(test.initCode)});
+        $response = $client->{@test.apiMethod.name}({@sampleMethodCallArgList(test.apiMethod.initCode)});
         $this->assertEquals($expectedResponse, $response->getPage()->getResponseObject());
         @join pageStreamingResponseView : test.pageStreamingResponseViews
             ${@pageStreamingResponseView.resourcesVarName} = iterator_to_array($response->{@pageStreamingResponseView.resourcesIterateMethod}());
@@ -344,13 +344,13 @@
         {@createErrorStatus()}
         $grpcStub->addResponse(null, $status);
 
-        @if test.hasRequestParameters
+        @if test.apiMethod.hasRequestParameters
           // Mock request
-          {@initCode(test.initCode, "client")}
+          {@initCode(test.apiMethod.initCode, "client")}
 
         @end
         try {
-            $client->{@test.clientMethodName}({@sampleMethodCallArgList(test.initCode)});
+            $client->{@test.apiMethod.name}({@sampleMethodCallArgList(test.apiMethod.initCode)});
             // If the $client method call did not throw, fail the test
             $this->fail('Expected an ApiException, but no exception was thrown.');
         } catch (ApiException $ex) {
@@ -391,7 +391,7 @@
         $incompleteOperation->setName('operations/{@test.name}');
         $incompleteOperation->setDone(false);
         $grpcStub->addResponse($incompleteOperation);
-        @if test.hasReturnValue
+        @if test.apiMethod.hasReturnValue
             {@initCode(test.mockResponse.initCode, "client")}
         @else
             $expectedResponse = new GPBEmpty();
@@ -404,12 +404,12 @@
         $completeOperation->setResponse($anyResponse);
         $operationsStub->addResponse($completeOperation);
 
-        @if test.hasRequestParameters
+        @if test.apiMethod.hasRequestParameters
           // Mock request
-          {@initCode(test.initCode, "client")}
+          {@initCode(test.apiMethod.initCode, "client")}
 
         @end
-        $response = $client->{@test.clientMethodName}({@sampleMethodCallArgList(test.initCode)});
+        $response = $client->{@test.apiMethod.name}({@sampleMethodCallArgList(test.apiMethod.initCode)});
         $this->assertFalse($response->isDone());
         $this->assertNull($response->getResult());
         {@lroCallSuccessAsserts(test)}
@@ -467,12 +467,12 @@
         {@createErrorStatus()}
         $operationsStub->addResponse(null, $status);
 
-        @if test.hasRequestParameters
+        @if test.apiMethod.hasRequestParameters
           // Mock request
-          {@initCode(test.initCode, "client")}
+          {@initCode(test.apiMethod.initCode, "client")}
 
         @end
-        $response = $client->{@test.clientMethodName}({@sampleMethodCallArgList(test.initCode)});
+        $response = $client->{@test.apiMethod.name}({@sampleMethodCallArgList(test.apiMethod.initCode)});
         $this->assertFalse($response->isDone());
         $this->assertNull($response->getResult());
 
@@ -507,16 +507,16 @@
     $this->assertTrue($grpcStub->isExhausted());
 
     // Mock response
-    @if test.hasReturnValue
+    @if test.apiMethod.hasReturnValue
         {@initCode(test.mockResponse.initCode, "client")}
     @else
         $expectedResponse = new GPBEmpty();
     @end
     $grpcStub->addResponse($expectedResponse);
 
-    @if test.hasRequestParameters
+    @if test.apiMethod.hasRequestParameters
       // Mock request
-      {@initCode(test.initCode, "client")}
+      {@initCode(test.apiMethod.initCode, "client")}
 
     @end
 @end

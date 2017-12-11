@@ -36,14 +36,14 @@ class MultiCallableStub(object):
 
     def __call__(self, request, timeout=None, metadata=None, credentials=None):
         self.channel_stub.requests.append((self.method, request))
-        
+
         response = None
         if self.channel_stub.responses:
             response = self.channel_stub.responses.pop()
 
         if isinstance(response, Exception):
             raise response
-            
+
         if response:
             return response
 
@@ -84,7 +84,7 @@ class CustomException(Exception):
 @end
 
 @private testCase(test, moduleName)
-    @switch test.grpcStreamingType
+    @switch test.apiMethod.grpcStreamingType
     @case "NonStreaming"
         {@nonStreamingOptionalArrayTestCase(test, moduleName)}
     @case "ServerStreaming"
@@ -99,7 +99,7 @@ class CustomException(Exception):
 @end
 
 @private nonStreamingOptionalArrayTestCase(test, moduleName)
-    @switch test.clientMethodType
+    @switch test.apiMethod.type
     @case "OptionalArrayMethod"
         {@simpleTestCase(test, moduleName)}
     @case "PagedOptionalArrayMethod"
@@ -113,22 +113,22 @@ class CustomException(Exception):
 
 @private serverStreamingOptionalArrayTestCase(test, moduleName)
     def {@test.name}(self):
-        @if test.hasReturnValue
+        @if test.apiMethod.hasReturnValue
             @# Setup Expected Response
             {@responseInitCode(test)}
 
         @end
         @# Mock the API response
         channel = ChannelStub(responses = [iter([expected_response])])
-        {@clientSetup(test, moduleName)}
+        {@clientSetup(test.apiMethod, moduleName)}
 
 
-        @if test.hasRequestParameters
+        @if test.apiMethod.hasRequestParameters
             @# Setup Request
-            {@initCode(test.initCode)}
+            {@initCode(test.apiMethod.initCode)}
 
         @end
-        response = {@unaryTestMethodCall(test)}
+        response = {@unaryTestMethodCall(test.apiMethod)}
         resources = list(response)
         assert len(resources) == 1
         assert expected_response == resources[0]
@@ -140,28 +140,28 @@ class CustomException(Exception):
 
 @private clientStreamingOptionalArrayTestCase(test, moduleName)
     def {@test.name}(self):
-        @if test.hasReturnValue
+        @if test.apiMethod.hasReturnValue
             @# Setup Expected Response
             {@responseInitCode(test)}
 
         @end
         @# Mock the API response
         channel = ChannelStub(responses = [expected_response])
-        {@clientSetup(test, moduleName)}
+        {@clientSetup(test.apiMethod, moduleName)}
 
         @# Setup Request
-        {@initCode(test.initCode)}
-        request = {@test.requestTypeName}(**request)
+        {@initCode(test.apiMethod.initCode)}
+        request = {@test.apiMethod.requestTypeName}(**request)
         requests = [request]
 
-        @if test.hasReturnValue
-            response = {@requestStreamingTestMethodCall(test)}
+        @if test.apiMethod.hasReturnValue
+            response = {@requestStreamingTestMethodCall(test.apiMethod)}
             assert expected_response == response
         @else
-            {@requestStreamingTestMethodCall(test)}
+            {@requestStreamingTestMethodCall(test.apiMethod)}
         @end
 
-        {@requestStreamingTestSuccessAsserts(test)}
+        {@requestStreamingTestSuccessAsserts()}
 
     {@requestStreamingTestWithException(test, moduleName)}
 @end
@@ -173,27 +173,27 @@ class CustomException(Exception):
 
         @# Mock the API response
         channel = ChannelStub(responses = [iter([expected_response])])
-        client = {@moduleName}.{@test.serviceConstructorName}(
+        client = {@moduleName}.{@test.apiMethod.serviceConstructorName}(
             channel=channel)
 
         @# Setup Request
-        {@initCode(test.initCode)}
-        request = {@test.requestTypeName}(**request)
+        {@initCode(test.apiMethod.initCode)}
+        request = {@test.apiMethod.requestTypeName}(**request)
         requests = [request]
 
-        response = {@requestStreamingTestMethodCall(test)}
+        response = {@requestStreamingTestMethodCall(test.apiMethod)}
         resources = list(response)
         assert len(resources) == 1
         assert expected_response == resources[0]
 
-        {@requestStreamingTestSuccessAsserts(test)}
+        {@requestStreamingTestSuccessAsserts()}
 
     {@requestStreamingTestWithException(test, moduleName)}
 @end
 
 @private simpleTestCase(test, moduleName)
     def {@test.name}(self):
-        @if test.hasReturnValue
+        @if test.apiMethod.hasReturnValue
             @# Setup Expected Response
             {@responseInitCode(test)}
 
@@ -202,18 +202,18 @@ class CustomException(Exception):
         @else
             channel = ChannelStub()
         @end
-        {@clientSetup(test, moduleName)}
+        {@clientSetup(test.apiMethod, moduleName)}
 
-        @if test.hasRequestParameters
+        @if test.apiMethod.hasRequestParameters
             @# Setup Request
-            {@initCode(test.initCode)}
+            {@initCode(test.apiMethod.initCode)}
 
         @end
-        @if test.hasReturnValue
-            response = {@unaryTestMethodCall(test)}
+        @if test.apiMethod.hasReturnValue
+            response = {@unaryTestMethodCall(test.apiMethod)}
             assert expected_response == response
         @else
-            {@unaryTestMethodCall(test)}
+            {@unaryTestMethodCall(test.apiMethod)}
         @end
 
         {@unaryTestSuccessAsserts(test)}
@@ -228,14 +228,14 @@ class CustomException(Exception):
 
         @# Mock the API response
         channel = ChannelStub(responses = [expected_response])
-        {@clientSetup(test, moduleName)}
+        {@clientSetup(test.apiMethod, moduleName)}
 
-        @if test.hasRequestParameters
+        @if test.apiMethod.hasRequestParameters
             @# Setup Request
-            {@initCode(test.initCode)}
+            {@initCode(test.apiMethod.initCode)}
 
         @end
-        paged_list_response = {@unaryTestMethodCall(test)}
+        paged_list_response = {@unaryTestMethodCall(test.apiMethod)}
         @join pageStreamingResponseView : test.pageStreamingResponseViews
             {@pageStreamingResponseView.resourcesVarName} = \
                 list(paged_list_response)
@@ -256,30 +256,30 @@ class CustomException(Exception):
     def {@test.nameWithException}(self):
         @# Mock the API response
         channel = ChannelStub(responses = [CustomException()])
-        client = {@moduleName}.{@test.serviceConstructorName}(
+        client = {@moduleName}.{@test.apiMethod.serviceConstructorName}(
              channel=channel)
 
-        @if test.hasRequestParameters
+        @if test.apiMethod.hasRequestParameters
             @# Setup request
-            {@initCode(test.initCode)}
+            {@initCode(test.apiMethod.initCode)}
 
         @end
         with pytest.raises(CustomException):
-            {@unaryTestMethodCall(test)}
+            {@unaryTestMethodCall(test.apiMethod)}
 @end
 
 @private pagedStreamingTestWithException(test, moduleName)
     def {@test.nameWithException}(self):
         channel = ChannelStub(responses = [CustomException()])
-        client = {@moduleName}.{@test.serviceConstructorName}(
+        client = {@moduleName}.{@test.apiMethod.serviceConstructorName}(
             channel=channel)
 
-        @if test.hasRequestParameters
+        @if test.apiMethod.hasRequestParameters
             @# Setup request
-            {@initCode(test.initCode)}
+            {@initCode(test.apiMethod.initCode)}
 
         @end
-        paged_list_response = {@unaryTestMethodCall(test)}
+        paged_list_response = {@unaryTestMethodCall(test.apiMethod)}
         with pytest.raises(CustomException):
             list(paged_list_response)
 @end
@@ -288,19 +288,19 @@ class CustomException(Exception):
     def {@test.nameWithException}(self):
         @# Mock the API response
         channel = ChannelStub(responses = [CustomException()])
-        client = {@moduleName}.{@test.serviceConstructorName}(
+        client = {@moduleName}.{@test.apiMethod.serviceConstructorName}(
              channel=channel)
 
-        @if test.hasRequestParameters
+        @if test.apiMethod.hasRequestParameters
             @# Setup request
-            {@initCode(test.initCode)}
+            {@initCode(test.apiMethod.initCode)}
 
         @end
-        request = {@test.requestTypeName}(**request)
+        request = {@test.apiMethod.requestTypeName}(**request)
         requests = [request]
 
         with pytest.raises(CustomException):
-            {@requestStreamingTestMethodCall(test)}
+            {@requestStreamingTestMethodCall(test.apiMethod)}
 @end
 
 @private operationTestCase(test, moduleName)
@@ -312,15 +312,15 @@ class CustomException(Exception):
 
         @# Mock the API response
         channel = ChannelStub(responses=[operation])
-        client = {@moduleName}.{@test.serviceConstructorName}(
+        client = {@moduleName}.{@test.apiMethod.serviceConstructorName}(
             channel=channel)
 
-        @if test.hasRequestParameters
+        @if test.apiMethod.hasRequestParameters
             @# Setup Request
-            {@initCode(test.initCode)}
+            {@initCode(test.apiMethod.initCode)}
 
         @end
-        response = {@unaryTestMethodCall(test)}
+        response = {@unaryTestMethodCall(test.apiMethod)}
         result = response.result()
         assert expected_response == result
 
@@ -336,44 +336,44 @@ class CustomException(Exception):
 
         @# Mock the API response
         channel = ChannelStub(responses=[operation])
-        client = {@moduleName}.{@test.serviceConstructorName}(
+        client = {@moduleName}.{@test.apiMethod.serviceConstructorName}(
             channel=channel)
 
-        @if test.hasRequestParameters
+        @if test.apiMethod.hasRequestParameters
             @# Setup Request
-            {@initCode(test.initCode)}
+            {@initCode(test.apiMethod.initCode)}
 
         @end
-        response = {@unaryTestMethodCall(test)}
+        response = {@unaryTestMethodCall(test.apiMethod)}
         exception = response.exception()
         assert exception.errors[0] == error
 @end
 
-@private clientSetup(test, moduleName)
-    client = {@moduleName}.{@test.serviceConstructorName}(
+@private clientSetup(apiMethod, moduleName)
+    client = {@moduleName}.{@apiMethod.serviceConstructorName}(
         channel=channel)
 @end
 
 @private responseInitCode(test)
     {@initCode(test.mockResponse.initCode)}
-    expected_response = {@test.responseTypeName}(**expected_response)
+    expected_response = {@test.apiMethod.responseTypeName}(**expected_response)
 @end
 
-@private unaryTestMethodCall(test)
-    client.{@test.clientMethodName}(\
-        {@sampleMethodCallArgList(test.initCode)})
+@private unaryTestMethodCall(apiMethod)
+    client.{@apiMethod.name}(\
+        {@sampleMethodCallArgList(apiMethod.initCode)})
 @end
 
-@private requestStreamingTestMethodCall(test)
-    client.{@test.clientMethodName}(requests)
+@private requestStreamingTestMethodCall(apiMethod)
+    client.{@apiMethod.name}(requests)
 @end
 
 @private unaryTestSuccessAsserts(test)
     assert len(channel.requests) == 1
-    @if test.hasRequestParameters
-        expected_request = {@test.requestTypeName}({@requestParams(test.asserts)})
+    @if test.apiMethod.hasRequestParameters
+        expected_request = {@test.apiMethod.requestTypeName}({@requestParams(test.asserts)})
     @else
-        expected_request = {@test.requestTypeName}()
+        expected_request = {@test.apiMethod.requestTypeName}()
     @end
     actual_request = channel.requests[0][1]
     assert expected_request == actual_request
@@ -394,7 +394,7 @@ class CustomException(Exception):
     @end
 @end
 
-@private requestStreamingTestSuccessAsserts(test)
+@private requestStreamingTestSuccessAsserts()
     assert len(channel.requests) == 1
     actual_requests = channel.requests[0][1]
     assert len(actual_requests) == 1

@@ -14,9 +14,7 @@
  */
 package com.google.api.codegen.viewmodel.testing;
 
-import com.google.api.codegen.config.GrpcStreamingConfig.GrpcStreamingType;
-import com.google.api.codegen.viewmodel.ClientMethodType;
-import com.google.api.codegen.viewmodel.InitCodeView;
+import com.google.api.codegen.viewmodel.ApiMethodView;
 import com.google.auto.value.AutoValue;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -24,25 +22,9 @@ import javax.annotation.Nullable;
 @AutoValue
 public abstract class TestCaseView {
 
-  public abstract String clientMethodName();
-
-  public abstract InitCodeView initCode();
-
-  public abstract ClientMethodType clientMethodType();
-
   public abstract MockGrpcResponseView mockResponse();
 
   public abstract List<ClientTestAssertView> asserts();
-
-  public abstract String requestTypeName();
-
-  public abstract String responseTypeName();
-
-  public abstract String callerResponseTypeName();
-
-  public abstract String fullyQualifiedRequestTypeName();
-
-  public abstract String fullyQualifiedResponseTypeName();
 
   public abstract List<PageStreamingResponseView> pageStreamingResponseViews();
 
@@ -53,29 +35,15 @@ public abstract class TestCaseView {
 
   public abstract String nameWithException();
 
-  public abstract String serviceConstructorName();
-
-  public abstract String fullyQualifiedServiceClassName();
-
-  /**
-   * In Ruby, the initializer of the service class is aliased. This name is the aliased method used
-   * to initialize a service class.
-   */
-  public abstract String fullyQualifiedAliasedServiceClassName();
-
   public abstract String mockServiceVarName();
-
-  public abstract boolean hasRequestParameters();
-
-  public abstract boolean hasReturnValue();
-
-  public abstract GrpcStreamingType grpcStreamingType();
 
   public abstract String mockGrpcStubTypeName();
 
   public abstract String createStubFunctionName();
 
   public abstract String grpcStubCallString();
+
+  public abstract ApiMethodView apiMethod();
 
   public static Builder newBuilder() {
     return new AutoValue_TestCaseView.Builder();
@@ -84,53 +52,27 @@ public abstract class TestCaseView {
   @AutoValue.Builder
   public abstract static class Builder {
 
-    public abstract Builder clientMethodName(String val);
-
     public abstract Builder name(String val);
 
     public abstract Builder nameWithException(String val);
 
-    public abstract Builder serviceConstructorName(String val);
-
-    public abstract Builder fullyQualifiedServiceClassName(String val);
-
-    public abstract Builder fullyQualifiedAliasedServiceClassName(String val);
-
     public abstract Builder mockServiceVarName(String val);
-
-    public abstract Builder initCode(InitCodeView val);
-
-    public abstract Builder clientMethodType(ClientMethodType val);
 
     public abstract Builder mockResponse(MockGrpcResponseView val);
 
     public abstract Builder asserts(List<ClientTestAssertView> val);
 
-    public abstract Builder requestTypeName(String val);
-
-    public abstract Builder responseTypeName(String val);
-
-    public abstract Builder callerResponseTypeName(String val);
-
-    public abstract Builder fullyQualifiedRequestTypeName(String val);
-
-    public abstract Builder fullyQualifiedResponseTypeName(String val);
-
     public abstract Builder pageStreamingResponseViews(List<PageStreamingResponseView> val);
 
     public abstract Builder grpcStreamingView(GrpcStreamingView val);
-
-    public abstract Builder hasRequestParameters(boolean val);
-
-    public abstract Builder hasReturnValue(boolean val);
-
-    public abstract Builder grpcStreamingType(GrpcStreamingType val);
 
     public abstract Builder mockGrpcStubTypeName(String val);
 
     public abstract Builder createStubFunctionName(String val);
 
     public abstract Builder grpcStubCallString(String val);
+
+    public abstract Builder apiMethod(ApiMethodView val);
 
     public abstract TestCaseView build();
   }

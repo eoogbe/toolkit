@@ -34,7 +34,7 @@ import com.google.api.codegen.util.Name;
 import com.google.api.codegen.util.SymbolTable;
 import com.google.api.codegen.util.testing.TestValueGenerator;
 import com.google.api.codegen.util.testing.ValueProducer;
-import com.google.api.codegen.viewmodel.ClientMethodType;
+import com.google.api.codegen.viewmodel.ApiMethodView;
 import com.google.api.codegen.viewmodel.FieldSettingView;
 import com.google.api.codegen.viewmodel.FormattedInitValueView;
 import com.google.api.codegen.viewmodel.InitCodeLineView;
@@ -55,69 +55,20 @@ import java.util.List;
 public class TestCaseTransformer {
   private final InitCodeTransformer initCodeTransformer = new InitCodeTransformer();
   private final TestValueGenerator valueGenerator;
-  private boolean packageHasMultipleServices;
 
   public TestCaseTransformer(ValueProducer valueProducer) {
-    this(valueProducer, false);
-  }
-
-  public TestCaseTransformer(ValueProducer valueProducer, boolean packageHasMultipleServices) {
     this.valueGenerator = new TestValueGenerator(valueProducer);
-    this.packageHasMultipleServices = packageHasMultipleServices;
   }
 
   public TestCaseView createTestCaseView(
       MethodContext methodContext,
       SymbolTable testNameTable,
       InitCodeContext initCodeContext,
-      ClientMethodType clientMethodType) {
+      ApiMethodView apiMethod) {
     MethodModel method = methodContext.getMethodModel();
     MethodConfig methodConfig = methodContext.getMethodConfig();
     SurfaceNamer namer = methodContext.getNamer();
     ImportTypeTable typeTable = methodContext.getTypeTable();
-
-    String clientMethodName;
-    String responseTypeName;
-    String callerResponseTypeName;
-    String fullyQualifiedResponseTypeName =
-        methodContext.getMethodModel().getOutputTypeName(typeTable).getFullName();
-
-    if (methodConfig.isPageStreaming()) {
-      clientMethodName = namer.getApiMethodName(method, methodConfig.getVisibility());
-      responseTypeName =
-          namer.getAndSavePagedResponseTypeName(
-              methodContext, methodConfig.getPageStreaming().getResourcesFieldConfig());
-      callerResponseTypeName =
-          namer.getAndSaveCallerPagedResponseTypeName(
-              methodContext, methodConfig.getPageStreaming().getResourcesFieldConfig());
-    } else if (methodConfig.isLongRunningOperation()) {
-      clientMethodName = namer.getLroApiMethodName(method, methodConfig.getVisibility());
-      responseTypeName =
-          methodContext
-              .getTypeTable()
-              .getAndSaveNicknameFor(methodConfig.getLongRunningConfig().getReturnType());
-      callerResponseTypeName = responseTypeName;
-      fullyQualifiedResponseTypeName =
-          methodContext
-              .getTypeTable()
-              .getFullNameFor(methodConfig.getLongRunningConfig().getReturnType());
-    } else if (clientMethodType == ClientMethodType.CallableMethod) {
-      clientMethodName = namer.getCallableMethodName(method);
-      responseTypeName = method.getAndSaveResponseTypeName(typeTable, namer);
-      callerResponseTypeName = responseTypeName;
-    } else {
-      clientMethodName = namer.getApiMethodName(method, methodConfig.getVisibility());
-      responseTypeName = method.getAndSaveResponseTypeName(typeTable, namer);
-      callerResponseTypeName = responseTypeName;
-    }
-
-    InitCodeView initCode = initCodeTransformer.generateInitCode(methodContext, initCodeContext);
-
-    boolean hasRequestParameters = initCode.lines().size() > 0;
-    boolean hasReturnValue = !method.isOutputTypeEmpty();
-    if (methodConfig.isLongRunningOperation()) {
-      hasReturnValue = !methodConfig.getLongRunningConfig().getReturnType().isEmptyType();
-    }
 
     InitCodeContext responseInitCodeContext =
         createResponseInitCodeContext(methodContext, initCodeContext.symbolTable());
@@ -130,8 +81,7 @@ public class TestCaseTransformer {
       String resourcesFieldGetterName = null;
       if (methodConfig.getGrpcStreaming().hasResourceField()) {
         FieldModel resourcesField = methodConfig.getGrpcStreaming().getResourcesField();
-        resourceTypeName =
-            methodContext.getTypeTable().getAndSaveNicknameForElementType(resourcesField);
+        resourceTypeName = typeTable.getAndSaveNicknameForElementType(resourcesField);
         resourcesFieldGetterName =
             namer.getFieldGetFunctionName(
                 resourcesField, Name.from(resourcesField.getSimpleName()));
@@ -142,7 +92,8 @@ public class TestCaseTransformer {
               .resourceTypeName(resourceTypeName)
               .resourcesFieldGetterName(resourcesFieldGetterName)
               .requestInitCodeList(
-                  createGrpcStreamingInitCodeViews(methodContext, initCodeContext, initCode))
+                  createGrpcStreamingInitCodeViews(
+                      methodContext, initCodeContext, apiMethod.initCode()))
               .responseInitCodeList(
                   createGrpcStreamingInitCodeViews(
                       methodContext, responseInitCodeContext, mockGrpcResponseView.initCode()))
@@ -151,33 +102,16 @@ public class TestCaseTransformer {
 
     return TestCaseView.newBuilder()
         .asserts(initCodeTransformer.generateRequestAssertViews(methodContext, initCodeContext))
-        .clientMethodType(clientMethodType)
-        .grpcStreamingType(methodConfig.getGrpcStreamingType())
-        .hasRequestParameters(hasRequestParameters)
-        .hasReturnValue(hasReturnValue)
-        .initCode(initCode)
         .mockResponse(mockGrpcResponseView)
         .mockServiceVarName(namer.getMockServiceVarName(methodContext.getTargetInterface()))
         .name(namer.getTestCaseName(testNameTable, method))
         .nameWithException(namer.getExceptionTestCaseName(testNameTable, method))
         .pageStreamingResponseViews(createPageStreamingResponseViews(methodContext))
         .grpcStreamingView(grpcStreamingView)
-        .requestTypeName(method.getAndSaveRequestTypeName(typeTable, namer))
-        .responseTypeName(responseTypeName)
-        .callerResponseTypeName(callerResponseTypeName)
-        .fullyQualifiedRequestTypeName(method.getInputTypeName(typeTable).getFullName())
-        .fullyQualifiedResponseTypeName(fullyQualifiedResponseTypeName)
-        .serviceConstructorName(
-            namer.getApiWrapperClassConstructorName(methodContext.getInterfaceConfig()))
-        .fullyQualifiedServiceClassName(
-            namer.getFullyQualifiedApiWrapperClassName(methodContext.getInterfaceConfig()))
-        .fullyQualifiedAliasedServiceClassName(
-            namer.getTopLevelAliasedApiClassName(
-                (methodContext.getInterfaceConfig()), packageHasMultipleServices))
-        .clientMethodName(clientMethodName)
         .mockGrpcStubTypeName(namer.getMockGrpcServiceImplName(methodContext.getTargetInterface()))
         .createStubFunctionName(namer.getCreateStubFunctionName(methodContext.getTargetInterface()))
         .grpcStubCallString(namer.getGrpcStubCallString(methodContext.getTargetInterface(), method))
+        .apiMethod(apiMethod)
         .build();
   }
 
@@ -310,28 +244,6 @@ public class TestCaseTransformer {
       }
     }
     return additionalSubTrees;
-  }
-
-  public TestCaseView createSmokeTestCaseView(MethodContext context) {
-    MethodConfig methodConfig = context.getMethodConfig();
-    ClientMethodType methodType;
-
-    if (methodConfig.isPageStreaming()) {
-      if (context.isFlattenedMethodContext()) {
-        methodType = ClientMethodType.PagedFlattenedMethod;
-      } else {
-        methodType = ClientMethodType.PagedRequestObjectMethod;
-      }
-    } else {
-      if (context.isFlattenedMethodContext()) {
-        methodType = ClientMethodType.FlattenedMethod;
-      } else {
-        methodType = ClientMethodType.RequestObjectMethod;
-      }
-    }
-
-    return createTestCaseView(
-        context, new SymbolTable(), createSmokeTestInitContext(context), methodType);
   }
 
   public boolean requireProjectIdInSmokeTest(InitCodeView initCodeView, SurfaceNamer namer) {

@@ -161,17 +161,33 @@ public class RubyGapicSurfaceTestTransformer implements ModelToViewTransformer {
       GapicMethodContext requestMethodContext =
           context.withNewTypeTable().asRequestMethodContext(method);
       MethodConfig methodConfig = requestMethodContext.getMethodConfig();
-      TestCaseTransformer testCaseTransformer =
-          new TestCaseTransformer(valueProducer, packageHasMultipleServices);
+      TestCaseTransformer testCaseTransformer = new TestCaseTransformer(valueProducer);
+      InitCodeContext initCodeContext = createUnitTestCaseInitCodeContext(context, method);
+      OptionalArrayMethodView apiMethod =
+          createUnitTestCaseApiMethodView(
+              requestMethodContext, initCodeContext, packageHasMultipleServices);
       TestCaseView testCase =
           testCaseTransformer.createTestCaseView(
-              requestMethodContext,
-              new SymbolTable(),
-              createUnitTestCaseInitCodeContext(context, method),
-              getMethodType(methodConfig));
+              requestMethodContext, new SymbolTable(), initCodeContext, apiMethod);
       testCases.add(testCase);
     }
     return testCases.build();
+  }
+
+  private OptionalArrayMethodView createUnitTestCaseApiMethodView(
+      GapicMethodContext methodContext,
+      InitCodeContext initCodeContext,
+      boolean packageHasMultipleServices) {
+    OptionalArrayMethodView initialApiMethodView =
+        new DynamicLangApiMethodTransformer(new RubyApiMethodParamTransformer())
+            .generateMethod(methodContext, packageHasMultipleServices);
+    OptionalArrayMethodView.Builder apiMethodView = initialApiMethodView.toBuilder();
+    apiMethodView.type(getMethodType(methodContext.getMethodConfig()));
+    InitCodeTransformer initCodeTransformer = new InitCodeTransformer();
+    InitCodeView initCode = initCodeTransformer.generateInitCode(methodContext, initCodeContext);
+    apiMethodView.initCode(initCode);
+    apiMethodView.hasRequestParameters(!initCode.lines().isEmpty());
+    return apiMethodView.build();
   }
 
   private InitCodeContext createUnitTestCaseInitCodeContext(
@@ -198,15 +214,19 @@ public class RubyGapicSurfaceTestTransformer implements ModelToViewTransformer {
   }
 
   private ClientMethodType getMethodType(MethodConfig config) {
-    ClientMethodType clientMethodType = ClientMethodType.RequestObjectMethod;
     if (config.isPageStreaming()) {
-      clientMethodType = ClientMethodType.PagedRequestObjectMethod;
-    } else if (config.isGrpcStreaming()) {
-      clientMethodType = ClientMethodType.AsyncRequestObjectMethod;
-    } else if (config.isLongRunningOperation()) {
-      clientMethodType = ClientMethodType.OperationCallableMethod;
+      return ClientMethodType.PagedRequestObjectMethod;
     }
-    return clientMethodType;
+
+    if (config.isGrpcStreaming()) {
+      return ClientMethodType.AsyncRequestObjectMethod;
+    }
+
+    if (config.isLongRunningOperation()) {
+      return ClientMethodType.OperationCallableMethod;
+    }
+
+    return ClientMethodType.RequestObjectMethod;
   }
 
   ///////////////////////////////////// Smoke Test ///////////////////////////////////////
@@ -231,8 +251,7 @@ public class RubyGapicSurfaceTestTransformer implements ModelToViewTransformer {
     String name = namer.getSmokeTestClassName(context.getInterfaceConfig());
 
     MethodModel method = context.getInterfaceConfig().getSmokeTestConfig().getMethod();
-    TestCaseTransformer testCaseTransformer =
-        new TestCaseTransformer(valueProducer, packageHasMultipleServices);
+    TestCaseTransformer testCaseTransformer = new TestCaseTransformer(valueProducer);
     FlatteningConfig flatteningGroup =
         testCaseTransformer.getSmokeTestFlatteningGroup(
             context.getMethodConfig(method), context.getInterfaceConfig().getSmokeTestConfig());
@@ -240,9 +259,6 @@ public class RubyGapicSurfaceTestTransformer implements ModelToViewTransformer {
         context.asFlattenedMethodContext(method, flatteningGroup);
 
     SmokeTestClassView.Builder testClass = SmokeTestClassView.newBuilder();
-    // TODO: we need to remove testCaseView after we switch to use apiMethodView for smoke test
-    // testCaseView not in use by Ruby for smoke test.
-    TestCaseView testCaseView = testCaseTransformer.createSmokeTestCaseView(flattenedMethodContext);
     OptionalArrayMethodView apiMethodView =
         createSmokeTestCaseApiMethodView(flattenedMethodContext, packageHasMultipleServices);
 
@@ -252,7 +268,6 @@ public class RubyGapicSurfaceTestTransformer implements ModelToViewTransformer {
     testClass.outputPath(namer.getSourceFilePath(outputPath, name));
     testClass.templateFileName(SMOKE_TEST_TEMPLATE_FILE);
     testClass.apiMethod(apiMethodView);
-    testClass.method(testCaseView);
     testClass.requireProjectId(
         testCaseTransformer.requireProjectIdInSmokeTest(
             apiMethodView.initCode(), context.getNamer()));
@@ -275,8 +290,7 @@ public class RubyGapicSurfaceTestTransformer implements ModelToViewTransformer {
             .generateMethod(context, packageHasMultipleServices);
 
     OptionalArrayMethodView.Builder apiMethodView = initialApiMethodView.toBuilder();
-    TestCaseTransformer testCaseTransformer =
-        new TestCaseTransformer(valueProducer, packageHasMultipleServices);
+    TestCaseTransformer testCaseTransformer = new TestCaseTransformer(valueProducer);
 
     InitCodeTransformer initCodeTransformer = new InitCodeTransformer();
     InitCodeView initCodeView =

@@ -14,4 +14,12 @@
  */
 package com.google.api.codegen.viewmodel;
 
-public interface ApiMethodView {}
+import com.google.api.codegen.config.GrpcStreamingConfig.GrpcStreamingType;
+
+public interface ApiMethodView {
+  ClientMethodType type();
+
+  GrpcStreamingType grpcStreamingType();
+
+  InitCodeView initCode();
+}

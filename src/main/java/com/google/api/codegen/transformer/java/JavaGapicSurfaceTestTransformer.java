@@ -44,8 +44,9 @@ import com.google.api.codegen.util.java.JavaTypeTable;
 import com.google.api.codegen.util.testing.StandardValueProducer;
 import com.google.api.codegen.util.testing.TestValueGenerator;
 import com.google.api.codegen.util.testing.ValueProducer;
-import com.google.api.codegen.viewmodel.ClientMethodType;
 import com.google.api.codegen.viewmodel.FileHeaderView;
+import com.google.api.codegen.viewmodel.InitCodeView;
+import com.google.api.codegen.viewmodel.StaticLangApiMethodView;
 import com.google.api.codegen.viewmodel.ViewModel;
 import com.google.api.codegen.viewmodel.testing.ClientTestClassView;
 import com.google.api.codegen.viewmodel.testing.ClientTestFileView;
@@ -144,25 +145,32 @@ public class JavaGapicSurfaceTestTransformer implements ModelToViewTransformer {
     MethodContext methodContext = context.asFlattenedMethodContext(method, flatteningGroup);
 
     SmokeTestClassView.Builder testClass = SmokeTestClassView.newBuilder();
-    // TODO: we need to remove testCaseView after we switch to use apiMethodView for smoke test
-    TestCaseView testCaseView = testCaseTransformer.createSmokeTestCaseView(methodContext);
+    StaticLangApiMethodView apiMethodView = createSmokeTestCaseApiMethodView(methodContext);
 
     testClass.apiSettingsClassName(namer.getApiSettingsClassName(context.getInterfaceConfig()));
     testClass.apiClassName(namer.getApiWrapperClassName(context.getInterfaceConfig()));
     testClass.templateFileName(SMOKE_TEST_TEMPLATE_FILE);
-    // TODO: Java needs to be refactored to use ApiMethodView instead
-    testClass.apiMethod(
-        new StaticLangApiMethodTransformer().generateFlattenedMethod(methodContext));
-    testClass.method(testCaseView);
+    testClass.apiMethod(apiMethodView);
     testClass.requireProjectId(
         testCaseTransformer.requireProjectIdInSmokeTest(
-            testCaseView.initCode(), context.getNamer()));
+            apiMethodView.initCode(), context.getNamer()));
 
     // Imports must be done as the last step to catch all imports.
     FileHeaderView fileHeader = fileHeaderTransformer.generateFileHeader(context);
     testClass.fileHeader(fileHeader);
 
     return testClass;
+  }
+
+  private StaticLangApiMethodView createSmokeTestCaseApiMethodView(MethodContext methodContext) {
+    StaticLangApiMethodView initialApiMethodView =
+        new StaticLangApiMethodTransformer().generateFlattenedMethod(methodContext);
+    StaticLangApiMethodView.Builder apiMethodView = initialApiMethodView.toBuilder();
+    InitCodeView initCodeView =
+        initCodeTransformer.generateInitCode(
+            methodContext, testCaseTransformer.createSmokeTestInitContext(methodContext));
+    apiMethodView.initCode(initCodeView);
+    return apiMethodView.build();
   }
 
   ///////////////////////////////////// Unit Test /////////////////////////////////////////
@@ -221,18 +229,12 @@ public class JavaGapicSurfaceTestTransformer implements ModelToViewTransformer {
                 methodConfig.getRequiredFieldConfigs(),
                 InitCodeOutputType.SingleObject,
                 valueGenerator);
+        StaticLangApiMethodView apiMethod =
+            createCallableUnitTestCaseApiMethodView(methodContext, initCodeContext);
         testCaseViews.add(
             testCaseTransformer.createTestCaseView(
-                methodContext, testNameTable, initCodeContext, ClientMethodType.CallableMethod));
+                methodContext, testNameTable, initCodeContext, apiMethod));
       } else if (methodConfig.isFlattening()) {
-        ClientMethodType clientMethodType;
-        if (methodConfig.isPageStreaming()) {
-          clientMethodType = ClientMethodType.PagedFlattenedMethod;
-        } else if (methodConfig.isLongRunningOperation()) {
-          clientMethodType = ClientMethodType.AsyncOperationFlattenedMethod;
-        } else {
-          clientMethodType = ClientMethodType.FlattenedMethod;
-        }
         for (FlatteningConfig flatteningGroup : methodConfig.getFlatteningConfigs()) {
           GapicMethodContext methodContext =
               context.asFlattenedMethodContext(method, flatteningGroup);
@@ -243,9 +245,11 @@ public class JavaGapicSurfaceTestTransformer implements ModelToViewTransformer {
                   flatteningGroup.getFlattenedFieldConfigs().values(),
                   InitCodeOutputType.FieldList,
                   valueGenerator);
+          StaticLangApiMethodView apiMethod =
+              createFlattenedUnitTestCaseApiMethodView(methodContext, initCodeContext);
           testCaseViews.add(
               testCaseTransformer.createTestCaseView(
-                  methodContext, testNameTable, initCodeContext, clientMethodType));
+                  methodContext, testNameTable, initCodeContext, apiMethod));
         }
       } else {
         // TODO: Add support of non-flattening method
@@ -255,6 +259,37 @@ public class JavaGapicSurfaceTestTransformer implements ModelToViewTransformer {
       }
     }
     return testCaseViews;
+  }
+
+  private StaticLangApiMethodView createCallableUnitTestCaseApiMethodView(
+      MethodContext methodContext, InitCodeContext initCodeContext) {
+    StaticLangApiMethodView initialApiMethodView =
+        new StaticLangApiMethodTransformer().generateCallableMethod(methodContext);
+    StaticLangApiMethodView.Builder apiMethodView = initialApiMethodView.toBuilder();
+    InitCodeView initCode = initCodeTransformer.generateInitCode(methodContext, initCodeContext);
+    apiMethodView.initCode(initCode);
+    return apiMethodView.build();
+  }
+
+  private StaticLangApiMethodView createFlattenedUnitTestCaseApiMethodView(
+      MethodContext methodContext, InitCodeContext initCodeContext) {
+    StaticLangApiMethodTransformer methodTransformer = new StaticLangApiMethodTransformer();
+    MethodConfig methodConfig = methodContext.getMethodConfig();
+    InitCodeView initCode = initCodeTransformer.generateInitCode(methodContext, initCodeContext);
+    StaticLangApiMethodView initialApiMethodView;
+    if (methodConfig.isPageStreaming()) {
+      initialApiMethodView = methodTransformer.generatePagedFlattenedMethod(methodContext);
+    } else if (methodConfig.isLongRunningOperation()) {
+      initialApiMethodView =
+          methodTransformer.generateAsyncOperationFlattenedMethod(
+              methodContext.cloneWithEmptyTypeTable());
+    } else {
+      initialApiMethodView = methodTransformer.generateFlattenedMethod(methodContext);
+    }
+
+    StaticLangApiMethodView.Builder apiMethodView = initialApiMethodView.toBuilder();
+    apiMethodView.initCode(initCode);
+    return apiMethodView.build();
   }
 
   ///////////////////////////////////// Mock Service /////////////////////////////////////////

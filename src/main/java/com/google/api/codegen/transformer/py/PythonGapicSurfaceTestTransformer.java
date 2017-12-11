@@ -21,6 +21,7 @@ import com.google.api.codegen.config.GapicInterfaceConfig;
 import com.google.api.codegen.config.GapicProductConfig;
 import com.google.api.codegen.config.GrpcStreamingConfig;
 import com.google.api.codegen.config.InterfaceModel;
+import com.google.api.codegen.config.MethodConfig;
 import com.google.api.codegen.config.MethodModel;
 import com.google.api.codegen.config.PackageMetadataConfig;
 import com.google.api.codegen.config.ProtoApiModel;
@@ -210,12 +211,6 @@ public class PythonGapicSurfaceTestTransformer implements ModelToViewTransformer
       SymbolTable testNameTable = new SymbolTable();
       for (MethodModel method : context.getSupportedMethods()) {
         GapicMethodContext methodContext = context.asRequestMethodContext(method);
-        ClientMethodType clientMethodType = ClientMethodType.OptionalArrayMethod;
-        if (methodContext.getMethodConfig().isLongRunningOperation()) {
-          clientMethodType = ClientMethodType.OperationOptionalArrayMethod;
-        } else if (methodContext.getMethodConfig().isPageStreaming()) {
-          clientMethodType = ClientMethodType.PagedOptionalArrayMethod;
-        }
 
         Iterable<FieldConfig> fieldConfigs =
             methodContext.getMethodConfig().getRequiredFieldConfigs();
@@ -235,12 +230,42 @@ public class PythonGapicSurfaceTestTransformer implements ModelToViewTransformer
                 .valueGenerator(valueGenerator)
                 .build();
 
+        OptionalArrayMethodView apiMethod =
+            createUnitTestCaseApiMethodView(methodContext, initCodeContext);
         testCaseViews.add(
             testCaseTransformer.createTestCaseView(
-                methodContext, testNameTable, initCodeContext, clientMethodType));
+                methodContext, testNameTable, initCodeContext, apiMethod));
       }
     }
     return testCaseViews.build();
+  }
+
+  private OptionalArrayMethodView createUnitTestCaseApiMethodView(
+      GapicMethodContext methodContext, InitCodeContext initCodeContext) {
+    OptionalArrayMethodView initialApiMethodView =
+        new DynamicLangApiMethodTransformer(new PythonApiMethodParamTransformer())
+            .generateMethod(methodContext.cloneWithEmptyTypeTable());
+    MethodModel method = methodContext.getMethodModel();
+    method.getAndSaveRequestTypeName(methodContext.getTypeTable(), methodContext.getNamer());
+    OptionalArrayMethodView.Builder apiMethodView = initialApiMethodView.toBuilder();
+    apiMethodView.type(getMethodType(methodContext.getMethodConfig()));
+    InitCodeTransformer initCodeTransformer = new InitCodeTransformer();
+    InitCodeView initCode = initCodeTransformer.generateInitCode(methodContext, initCodeContext);
+    apiMethodView.initCode(initCode);
+    apiMethodView.hasRequestParameters(!initCode.lines().isEmpty());
+    return apiMethodView.build();
+  }
+
+  private ClientMethodType getMethodType(MethodConfig methodConfig) {
+    if (methodConfig.isLongRunningOperation()) {
+      return ClientMethodType.OperationOptionalArrayMethod;
+    }
+
+    if (methodConfig.isPageStreaming()) {
+      return ClientMethodType.PagedOptionalArrayMethod;
+    }
+
+    return ClientMethodType.OptionalArrayMethod;
   }
 
   private List<ViewModel> createSmokeTestViews(ApiModel model, GapicProductConfig productConfig) {
@@ -277,9 +302,6 @@ public class PythonGapicSurfaceTestTransformer implements ModelToViewTransformer
     GapicMethodContext flattenedMethodContext =
         context.asFlattenedMethodContext(method, flatteningGroup);
 
-    // TODO: we need to remove testCaseView after we switch to use apiMethodView for smoke test
-    // testCaseView not in use by Python for smoke test.
-    TestCaseView testCaseView = testCaseTransformer.createSmokeTestCaseView(flattenedMethodContext);
     OptionalArrayMethodView apiMethodView =
         createSmokeTestCaseApiMethodView(flattenedMethodContext);
 
@@ -297,7 +319,6 @@ public class PythonGapicSurfaceTestTransformer implements ModelToViewTransformer
         .outputPath(outputPath)
         .templateFileName(SMOKE_TEST_TEMPLATE_FILE)
         .apiMethod(apiMethodView)
-        .method(testCaseView)
         .requireProjectId(requireProjectId)
         .fileHeader(
             fileHeaderTransformer.generateFileHeader(

@@ -83,6 +83,8 @@ public class DynamicLangApiMethodTransformer {
     apiMethod.versionAliasedApiClassName(
         namer.getVersionAliasedApiClassName(
             (context.getInterfaceConfig()), packageHasMultipleServices));
+    apiMethod.serviceConstructorName(
+        namer.getApiWrapperClassConstructorName(context.getInterfaceConfig()));
     apiMethod.apiVariableName(namer.getApiWrapperVariableName(context.getInterfaceConfig()));
     apiMethod.apiModuleName(namer.getApiWrapperModuleName());
     apiMethod.localPackageName(namer.getLocalPackageName());
@@ -103,6 +105,10 @@ public class DynamicLangApiMethodTransformer {
     apiMethod.requestVariableName(namer.getRequestVariableName(method));
     apiMethod.requestTypeName(
         namer.getRequestTypeName(context.getTypeTable(), context.getMethod().getInputType()));
+    apiMethod.fullyQualifiedRequestTypeName(
+        method.getInputTypeName(context.getTypeTable()).getFullName());
+    apiMethod.responseTypeName(generateResponseTypeName(context.cloneWithEmptyTypeTable()));
+    apiMethod.fullyQualifiedResponseTypeName(generateFullyQualifiedResponseTypeName(context));
     apiMethod.hasReturnValue(!ServiceMessages.s_isEmptyType(context.getMethod().getOutputType()));
     apiMethod.key(namer.getMethodKey(method));
     apiMethod.grpcMethodName(namer.getGrpcMethodName(method));
@@ -167,6 +173,35 @@ public class DynamicLangApiMethodTransformer {
     docBuilder.throwsDocLines(surfaceNamer.getThrowsDocLines(methodConfig));
 
     return docBuilder.build();
+  }
+
+  private String generateResponseTypeName(MethodContext context) {
+    if (context.getMethodConfig().isPageStreaming()) {
+      return context
+          .getNamer()
+          .getAndSavePagedResponseTypeName(
+              context, context.getMethodConfig().getPageStreaming().getResourcesFieldConfig());
+    }
+
+    if (context.getMethodConfig().isLongRunningOperation()) {
+      return context
+          .getTypeTable()
+          .getAndSaveNicknameFor(context.getMethodConfig().getLongRunningConfig().getReturnType());
+    }
+
+    return context
+        .getMethodModel()
+        .getAndSaveResponseTypeName(context.getTypeTable(), context.getNamer());
+  }
+
+  private String generateFullyQualifiedResponseTypeName(MethodContext context) {
+    if (context.getMethodConfig().isLongRunningOperation()) {
+      return context
+          .getTypeTable()
+          .getFullNameFor(context.getMethodConfig().getLongRunningConfig().getReturnType());
+    }
+
+    return context.getMethodModel().getOutputTypeName(context.getTypeTable()).getFullName();
   }
 
   private List<RequestObjectParamView> generateRequestObjectParams(

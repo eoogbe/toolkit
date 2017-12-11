@@ -194,7 +194,7 @@
         {@test.mockServiceVarName}.err = nil
         {@test.mockServiceVarName}.reqs = nil
 
-        @if test.clientMethodType == "OperationRequestObjectMethod"
+        @if test.apiMethod.type == "OperationRequestObjectMethod"
             any, err := ptypes.MarshalAny(expectedResponse)
             if err != nil {
                 t.Fatal(err)
@@ -208,9 +208,9 @@
             {@test.mockServiceVarName}.resps = append({@test.mockServiceVarName}.resps[:0], expectedResponse)
         @end
 
-        {@initCode(test.initCode)}
+        {@initCode(test.apiMethod.initCode)}
 
-        {@callMock(test)}
+        {@callMock(test.apiMethod)}
 
         if err != nil {
             t.Fatal(err)
@@ -220,7 +220,7 @@
             t.Errorf("wrong request %q, want %q", got, want)
         }
 
-        @if test.clientMethodType == "PagedRequestObjectMethod"
+        @if test.apiMethod.type == "PagedRequestObjectMethod"
             @join pageStreamingResponseView : test.pageStreamingResponseViews
                 want := (interface{})(expectedResponse.{@pageStreamingResponseView.resourcesFieldGetterName}[0])
                 got := (interface{})(resp)
@@ -237,7 +237,7 @@
                 }
             @end
         @else
-            @if test.hasReturnValue
+            @if test.apiMethod.hasReturnValue
                 if want, got := expectedResponse, resp; !proto.Equal(want, got) {
                     t.Errorf("wrong response %q, want %q)", got, want)
                 }
@@ -247,7 +247,7 @@
 
     func {@test.nameWithException}(t *testing.T) {
         errCode := codes.PermissionDenied
-        @if test.clientMethodType == "OperationRequestObjectMethod"
+        @if test.apiMethod.type == "OperationRequestObjectMethod"
             {@test.mockServiceVarName}.err = nil
             {@test.mockServiceVarName}.resps = append({@test.mockServiceVarName}.resps[:0], &longrunningpb.Operation{
                 Name: "longrunning-test",
@@ -263,30 +263,30 @@
             {@test.mockServiceVarName}.err = gstatus.Error(errCode, "test error")
         @end
 
-        {@initCode(test.initCode)}
+        {@initCode(test.apiMethod.initCode)}
 
-        {@callMock(test)}
+        {@callMock(test.apiMethod)}
 
         if st, ok := gstatus.FromError(err); !ok {
             t.Errorf("got error %v, expected grpc error", err)
         } else if c := st.Code(); c != errCode {
             t.Errorf("got error code %q, want %q", c, errCode)
         }
-        @if test.hasReturnValue
+        @if test.apiMethod.hasReturnValue
             _ = resp
         @end
     }
 @end
 
-@private callMock(test)
-    c, err := {@test.serviceConstructorName}(context.Background(), clientOpt)
+@private callMock(apiMethod)
+    c, err := {@apiMethod.serviceConstructorName}(context.Background(), clientOpt)
     if err != nil {
         t.Fatal(err)
     }
 
-    @switch test.grpcStreamingType
+    @switch apiMethod.grpcStreamingType
     @case "BidiStreaming"
-        stream, err := c.{@test.clientMethodName}(context.Background())
+        stream, err := c.{@apiMethod.name}(context.Background())
         if err != nil {
             t.Fatal(err)
         }
@@ -298,36 +298,36 @@
         }
         resp, err := stream.Recv()
     @case "ServerStreaming"
-        stream, err := c.{@test.clientMethodName}(context.Background(), request)
+        stream, err := c.{@apiMethod.name}(context.Background(), request)
         if err != nil {
             t.Fatal(err)
         }
         resp, err := stream.Recv()
     @case "ClientStreaming"
-        stream, err := c.{@test.clientMethodName}(context.Background())
+        stream, err := c.{@apiMethod.name}(context.Background())
         if err != nil {
             t.Fatal(err)
         }
         resp, err := stream.CloseAndRecv()
     @case "NonStreaming"
-        @switch test.clientMethodType
+        @switch apiMethod.type
         @case "PagedRequestObjectMethod"
-            resp, err := c.{@test.clientMethodName}(context.Background(), request).Next()
+            resp, err := c.{@apiMethod.name}(context.Background(), request).Next()
         @case "OperationRequestObjectMethod"
-            respLRO, err := c.{@test.clientMethodName}(context.Background(), request)
+            respLRO, err := c.{@apiMethod.name}(context.Background(), request)
             if err != nil {
                 t.Fatal(err)
             }
-            @if test.hasReturnValue
+            @if apiMethod.hasReturnValue
                 resp, err := respLRO.Wait(context.Background())
             @else
                 err = respLRO.Wait(context.Background())
             @end
         @case "RequestObjectMethod"
-            @if test.hasReturnValue
-                resp, err := c.{@test.clientMethodName}(context.Background(), request)
+            @if apiMethod.hasReturnValue
+                resp, err := c.{@apiMethod.name}(context.Background(), request)
             @else
-                err = c.{@test.clientMethodName}(context.Background(), request)
+                err = c.{@apiMethod.name}(context.Background(), request)
             @end
         @end
     @end

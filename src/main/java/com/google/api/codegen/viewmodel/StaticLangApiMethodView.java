@@ -26,12 +26,15 @@ import javax.annotation.Nullable;
 @AutoValue
 public abstract class StaticLangApiMethodView
     implements ApiMethodView, Comparable<StaticLangApiMethodView> {
+
+  @Override
   public abstract ClientMethodType type();
 
   public abstract String apiClassName();
 
   public abstract String apiVariableName();
 
+  @Override
   public abstract InitCodeView initCode();
 
   public abstract ApiMethodDocView doc();
@@ -69,6 +72,7 @@ public abstract class StaticLangApiMethodView
 
   public abstract String stubName();
 
+  @Override
   public abstract GrpcStreamingType grpcStreamingType();
 
   public boolean isStreaming() {
@@ -94,9 +98,13 @@ public abstract class StaticLangApiMethodView
 
   public abstract List<HeaderRequestParamView> headerRequestParams();
 
+  public abstract String serviceConstructorName();
+
   public static Builder newBuilder() {
     return new AutoValue_StaticLangApiMethodView.Builder();
   }
+
+  public abstract Builder toBuilder();
 
   @AutoValue.Builder
   public abstract static class Builder {
@@ -157,6 +165,8 @@ public abstract class StaticLangApiMethodView
     public abstract Builder releaseLevelAnnotation(String value);
 
     public abstract Builder headerRequestParams(List<HeaderRequestParamView> val);
+
+    public abstract Builder serviceConstructorName(String val);
 
     public abstract StaticLangApiMethodView build();
   }

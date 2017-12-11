@@ -19,6 +19,7 @@ import com.google.api.codegen.config.FlatteningConfig;
 import com.google.api.codegen.config.GapicProductConfig;
 import com.google.api.codegen.config.GrpcStreamingConfig.GrpcStreamingType;
 import com.google.api.codegen.config.InterfaceModel;
+import com.google.api.codegen.config.MethodConfig;
 import com.google.api.codegen.config.MethodModel;
 import com.google.api.codegen.config.ProtoApiModel;
 import com.google.api.codegen.metacode.InitCodeContext;
@@ -197,19 +198,6 @@ public class PhpGapicSurfaceTestTransformer implements ModelToViewTransformer {
         continue;
       }
 
-      InitCodeOutputType initCodeOutputType = InitCodeOutputType.FieldList;
-      if (methodContext.getMethodConfig().getGrpcStreamingType()
-          == GrpcStreamingType.BidiStreaming) {
-        initCodeOutputType = InitCodeOutputType.SingleObject;
-      }
-
-      ClientMethodType clientMethodType = ClientMethodType.OptionalArrayMethod;
-      if (methodContext.getMethodConfig().isLongRunningOperation()) {
-        clientMethodType = ClientMethodType.OperationOptionalArrayMethod;
-      } else if (methodContext.getMethodConfig().isPageStreaming()) {
-        clientMethodType = ClientMethodType.PagedOptionalArrayMethod;
-      }
-
       Iterable<FieldConfig> fieldConfigs =
           methodContext.getMethodConfig().getRequiredFieldConfigs();
       InitCodeContext initCodeContext =
@@ -219,16 +207,54 @@ public class PhpGapicSurfaceTestTransformer implements ModelToViewTransformer {
               .initFieldConfigStrings(methodContext.getMethodConfig().getSampleCodeInitFields())
               .initValueConfigMap(InitCodeTransformer.createCollectionMap(methodContext))
               .initFields(FieldConfig.toFieldTypeIterable(fieldConfigs))
-              .outputType(initCodeOutputType)
+              .outputType(getInitCodeOutputType(methodContext.getMethodConfig()))
               .fieldConfigMap(FieldConfig.toFieldConfigMap(fieldConfigs))
               .valueGenerator(valueGenerator)
               .build();
 
+      OptionalArrayMethodView apiMethod =
+          createUnitTestCaseApiMethodView(methodContext, initCodeContext);
       testCaseViews.add(
           testCaseTransformer.createTestCaseView(
-              methodContext, testNameTable, initCodeContext, clientMethodType));
+              methodContext, testNameTable, initCodeContext, apiMethod));
     }
     return testCaseViews;
+  }
+
+  private OptionalArrayMethodView createUnitTestCaseApiMethodView(
+      GapicMethodContext methodContext, InitCodeContext initCodeContext) {
+    OptionalArrayMethodView initialApiMethodView =
+        new DynamicLangApiMethodTransformer(new PhpApiMethodParamTransformer())
+            .generateMethod(methodContext.cloneWithEmptyTypeTable());
+    MethodModel method = methodContext.getMethodModel();
+    method.getAndSaveRequestTypeName(methodContext.getTypeTable(), methodContext.getNamer());
+    OptionalArrayMethodView.Builder apiMethodView = initialApiMethodView.toBuilder();
+    apiMethodView.type(getMethodType(methodContext.getMethodConfig()));
+    InitCodeTransformer initCodeTransformer = new InitCodeTransformer();
+    InitCodeView initCode = initCodeTransformer.generateInitCode(methodContext, initCodeContext);
+    apiMethodView.initCode(initCode);
+    apiMethodView.hasRequestParameters(!initCode.lines().isEmpty());
+    return apiMethodView.build();
+  }
+
+  private ClientMethodType getMethodType(MethodConfig methodConfig) {
+    if (methodConfig.isLongRunningOperation()) {
+      return ClientMethodType.OperationOptionalArrayMethod;
+    }
+
+    if (methodConfig.isPageStreaming()) {
+      return ClientMethodType.PagedOptionalArrayMethod;
+    }
+
+    return ClientMethodType.OptionalArrayMethod;
+  }
+
+  private InitCodeOutputType getInitCodeOutputType(MethodConfig methodConfig) {
+    if (methodConfig.getGrpcStreamingType() == GrpcStreamingType.BidiStreaming) {
+      return InitCodeOutputType.SingleObject;
+    }
+
+    return InitCodeOutputType.FieldList;
   }
 
   private MockServiceImplFileView createMockServiceImplView(GapicInterfaceContext context) {
@@ -299,12 +325,7 @@ public class PhpGapicSurfaceTestTransformer implements ModelToViewTransformer {
         context.asFlattenedMethodContext(method, flatteningGroup);
 
     SmokeTestClassView.Builder testClass = SmokeTestClassView.newBuilder();
-    // TODO: we need to remove testCase after we switch to use apiMethod for smoke test
-    TestCaseView testCase = testCaseTransformer.createSmokeTestCaseView(flattenedMethodContext);
-    // apiMethod is cloned with an empty type table so types used only by method documentation (ex: an optional
-    // FieldMask type) aren't included in the TypeTable by default.
-    OptionalArrayMethodView apiMethod =
-        createSmokeTestCaseApiMethodView(flattenedMethodContext.cloneWithEmptyTypeTable());
+    OptionalArrayMethodView apiMethod = createSmokeTestCaseApiMethodView(flattenedMethodContext);
 
     testClass.apiSettingsClassName(
         context.getNamer().getApiSettingsClassName(context.getInterfaceConfig()));
@@ -314,9 +335,8 @@ public class PhpGapicSurfaceTestTransformer implements ModelToViewTransformer {
             .toLowerUnderscore());
     testClass.templateFileName(SMOKE_TEST_TEMPLATE_FILE);
     testClass.apiMethod(apiMethod);
-    testClass.method(testCase);
     testClass.requireProjectId(
-        testCaseTransformer.requireProjectIdInSmokeTest(testCase.initCode(), context.getNamer()));
+        testCaseTransformer.requireProjectIdInSmokeTest(apiMethod.initCode(), context.getNamer()));
 
     ImportSectionView importSection =
         importSectionTransformer.generateImportSection(context.getImportTypeTable().getImports());

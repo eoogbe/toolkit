@@ -55,7 +55,7 @@
 @end
 
 @private testCase(test)
-  @switch test.grpcStreamingType
+  @switch test.apiMethod.grpcStreamingType
   @case "BidiStreaming"
       {@grpcStreamingTestCase(test)}
   @case "ServerStreaming"
@@ -63,7 +63,7 @@
   @case "ClientStreaming"
       {@grpcStreamingTestCase(test)}
   @case "NonStreaming"
-      @switch test.clientMethodType
+      @switch test.apiMethod.type
       @case "FlattenedMethod"
           {@unaryTestCase(test)}
       @case "PagedFlattenedMethod"
@@ -80,7 +80,7 @@
   public void {@test.name}() {
     {@addResponse(test)}
 
-    {@initCode(test.initCode)}
+    {@initCode(test.apiMethod.initCode)}
 
     {@methodCall(test)}
 
@@ -93,10 +93,10 @@
     {@addException(test)}
 
     try {
-      {@initCode(test.initCode)}
+      {@initCode(test.apiMethod.initCode)}
 
-      client.{@test.clientMethodName}(\
-          {@sampleMethodCallArgList(test.initCode.fieldSettings)});
+      client.{@test.apiMethod.name}(\
+          {@sampleMethodCallArgList(test.apiMethod.initCode.fieldSettings)});
       Assert.fail("No exception raised");
     } catch (InvalidArgumentException e) {
       // Expected exception
@@ -109,11 +109,11 @@
   @@SuppressWarnings("all")
   public void {@test.name}() throws Exception {
     {@addResponse(test)}
-    {@initCode(test.initCode)}
+    {@initCode(test.apiMethod.initCode)}
 
-    {@streamingMethodCall(test)}
+    {@streamingMethodCall(test.apiMethod)}
 
-    List<{@test.responseTypeName}> actualResponses = responseObserver.future().get();
+    List<{@test.apiMethod.responseTypeName}> actualResponses = responseObserver.future().get();
     Assert.assertEquals(1, actualResponses.size());
     Assert.assertEquals(expectedResponse, actualResponses.get(0));
   }
@@ -122,12 +122,12 @@
   @@SuppressWarnings("all")
   public void {@test.nameWithException}() throws Exception {
     {@addException(test)}
-    {@initCode(test.initCode)}
+    {@initCode(test.apiMethod.initCode)}
 
-    {@streamingMethodCallWithException(test)}
+    {@streamingMethodCallWithException(test.apiMethod)}
 
     try {
-      List<{@test.responseTypeName}> actualResponses = responseObserver.future().get();
+      List<{@test.apiMethod.responseTypeName}> actualResponses = responseObserver.future().get();
       Assert.fail("No exception thrown");
     } catch (ExecutionException e) {
       Assert.assertTrue(e.getCause() instanceof StatusRuntimeException);
@@ -150,9 +150,9 @@
             .build();
     {@test.mockServiceVarName}.addResponse(resultOperation);
 
-    {@initCode(test.initCode)}
+    {@initCode(test.apiMethod.initCode)}
 
-    {@longRunningMethodCall(test)}
+    {@longRunningMethodCall(test.apiMethod)}
 
     {@unarySuccessAsserts(test)}
   }
@@ -163,10 +163,10 @@
     {@addException(test)}
 
     try {
-      {@initCode(test.initCode)}
+      {@initCode(test.apiMethod.initCode)}
 
-      client.{@test.clientMethodName}(\
-          {@sampleMethodCallArgList(test.initCode.fieldSettings)}).get();
+      client.{@test.apiMethod.name}(\
+          {@sampleMethodCallArgList(test.apiMethod.initCode.fieldSettings)}).get();
       Assert.fail("No exception raised");
     } catch (ExecutionException e) {
       Assert.assertEquals(InvalidArgumentException.class, e.getCause().getClass());
@@ -177,45 +177,45 @@
 
 @end
 
-@private streamingMethodCall(test)
-  @switch test.grpcStreamingType
+@private streamingMethodCall(apiMethod)
+  @switch apiMethod.grpcStreamingType
   @case "BidiStreaming"
-    {@bidiStreamingCall(test)}
+    {@bidiStreamingCall(apiMethod)}
     requestObserver.onCompleted();
   @case "ServerStreaming"
-    {@serverStreamingCall(test)}
+    {@serverStreamingCall(apiMethod)}
   @default
-    $unhandled case: {@test.grpcStreamingType.toString}$
+    $unhandled case: {@apiMethod.grpcStreamingType}$
   @end
 @end
 
-@private streamingMethodCallWithException(test)
-  @switch test.grpcStreamingType
+@private streamingMethodCallWithException(apiMethod)
+  @switch apiMethod.grpcStreamingType
   @case "BidiStreaming"
-    {@bidiStreamingCall(test)}
+    {@bidiStreamingCall(apiMethod)}
   @case "ServerStreaming"
-    {@serverStreamingCall(test)}
+    {@serverStreamingCall(apiMethod)}
   @default
-    $unhandled case: {@test.grpcStreamingType.toString}$
+    $unhandled case: {@apiMethod.grpcStreamingType}$
   @end
 @end
 
-@private bidiStreamingCall(test)
-  MockStreamObserver<{@test.responseTypeName}> responseObserver = new MockStreamObserver<>();
+@private bidiStreamingCall(apiMethod)
+  MockStreamObserver<{@apiMethod.responseTypeName}> responseObserver = new MockStreamObserver<>();
 
-  BidiStreamingCallable<{@test.requestTypeName}, {@test.responseTypeName}> callable =
-      client.{@test.clientMethodName}();
-  ApiStreamObserver<{@test.requestTypeName}> requestObserver =
+  BidiStreamingCallable<{@apiMethod.serviceRequestTypeName}, {@apiMethod.responseTypeName}> callable =
+      client.{@apiMethod.name}();
+  ApiStreamObserver<{@apiMethod.serviceRequestTypeName}> requestObserver =
       callable.bidiStreamingCall(responseObserver);
 
   requestObserver.onNext(request);
 @end
 
-@private serverStreamingCall(test)
-  MockStreamObserver<{@test.responseTypeName}> responseObserver = new MockStreamObserver<>();
+@private serverStreamingCall(apiMethod)
+  MockStreamObserver<{@apiMethod.responseTypeName}> responseObserver = new MockStreamObserver<>();
 
-  ServerStreamingCallable<{@test.requestTypeName}, {@test.responseTypeName}> callable =
-      client.{@test.clientMethodName}();
+  ServerStreamingCallable<{@apiMethod.serviceRequestTypeName}, {@apiMethod.responseTypeName}> callable =
+      client.{@apiMethod.name}();
   callable.serverStreamingCall(request, responseObserver);
 @end
 
@@ -230,10 +230,10 @@
 @end
 
 @private methodCall(test)
-  @switch test.clientMethodType
+  @switch test.apiMethod.type
   @case "PagedFlattenedMethod"
-    {@test.responseTypeName} pagedListResponse = client.{@test.clientMethodName}(\
-      {@sampleMethodCallArgList(test.initCode.fieldSettings)});
+    {@test.apiMethod.responseTypeName} pagedListResponse = client.{@test.apiMethod.name}(\
+      {@sampleMethodCallArgList(test.apiMethod.initCode.fieldSettings)});
 
     @join pageStreamingResponseView : test.pageStreamingResponseViews
       List<{@pageStreamingResponseView.resourceTypeName}> {@pageStreamingResponseView.resourcesVarName} = Lists.newArrayList(pagedListResponse.{@pageStreamingResponseView.resourcesIterateMethod}());
@@ -241,31 +241,31 @@
       Assert.assertEquals(expectedResponse.{@pageStreamingResponseView.resourcesFieldGetterName}().get(0), {@pageStreamingResponseView.resourcesVarName}.get(0));
     @end
   @case "FlattenedMethod"
-    @if test.hasReturnValue
-      {@test.responseTypeName} actualResponse =
-          client.{@test.clientMethodName}(\
-          {@sampleMethodCallArgList(test.initCode.fieldSettings)});
+    @if test.apiMethod.hasReturnValue
+      {@test.apiMethod.responseTypeName} actualResponse =
+          client.{@test.apiMethod.name}(\
+          {@sampleMethodCallArgList(test.apiMethod.initCode.fieldSettings)});
       Assert.assertEquals(expectedResponse, actualResponse);
     @else
-      client.{@test.clientMethodName}(\
-            {@sampleMethodCallArgList(test.initCode.fieldSettings)});
+      client.{@test.apiMethod.name}(\
+            {@sampleMethodCallArgList(test.apiMethod.initCode.fieldSettings)});
     @end
   @default
-    $unhandledCase: {@test.clientMethodType}$
+    $unhandledCase: {@test.apiMethod.type}$
   @end
 @end
 
-@private longRunningMethodCall(test)
-  {@test.responseTypeName} actualResponse =
-      client.{@test.clientMethodName}(\
-          {@sampleMethodCallArgList(test.initCode.fieldSettings)}).get();
+@private longRunningMethodCall(apiMethod)
+  {@apiMethod.responseTypeName} actualResponse =
+      client.{@apiMethod.name}(\
+          {@sampleMethodCallArgList(apiMethod.initCode.fieldSettings)}).get();
   Assert.assertEquals(expectedResponse, actualResponse);
 @end
 
 @private unarySuccessAsserts(test)
   List<GeneratedMessageV3> actualRequests = {@test.mockServiceVarName}.getRequests();
   Assert.assertEquals(1, actualRequests.size());
-  {@test.requestTypeName} actualRequest = ({@test.requestTypeName})actualRequests.get(0);
+  {@test.apiMethod.serviceRequestTypeName} actualRequest = ({@test.apiMethod.serviceRequestTypeName})actualRequests.get(0);
 
   @join assert : test.asserts
     @if assert.hasExpectedValueTransformFunction

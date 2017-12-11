@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 @AutoValue
 public abstract class OptionalArrayMethodView implements ApiMethodView {
 
+  @Override
   public abstract ClientMethodType type();
 
   public abstract String apiClassName();
@@ -32,6 +33,7 @@ public abstract class OptionalArrayMethodView implements ApiMethodView {
 
   public abstract String apiModuleName();
 
+  @Override
   public abstract InitCodeView initCode();
 
   public abstract ApiMethodDocView doc();
@@ -46,6 +48,7 @@ public abstract class OptionalArrayMethodView implements ApiMethodView {
 
   public abstract String grpcMethodName();
 
+  @Override
   public abstract GrpcStreamingType grpcStreamingType();
 
   public boolean isGrpcStreamingMethod() {
@@ -105,6 +108,14 @@ public abstract class OptionalArrayMethodView implements ApiMethodView {
   public abstract Iterable<Iterable<String>> oneofParams();
 
   public abstract List<HeaderRequestParamView> headerRequestParams();
+
+  public abstract String responseTypeName();
+
+  public abstract String fullyQualifiedRequestTypeName();
+
+  public abstract String fullyQualifiedResponseTypeName();
+
+  public abstract String serviceConstructorName();
 
   public static Builder newBuilder() {
     return new AutoValue_OptionalArrayMethodView.Builder();
@@ -185,6 +196,14 @@ public abstract class OptionalArrayMethodView implements ApiMethodView {
     public abstract Builder localPackageName(String val);
 
     public abstract Builder headerRequestParams(List<HeaderRequestParamView> val);
+
+    public abstract Builder responseTypeName(String val);
+
+    public abstract Builder fullyQualifiedRequestTypeName(String val);
+
+    public abstract Builder fullyQualifiedResponseTypeName(String val);
+
+    public abstract Builder serviceConstructorName(String val);
 
     public abstract OptionalArrayMethodView build();
   }

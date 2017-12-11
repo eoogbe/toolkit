@@ -40,7 +40,7 @@ public abstract class MockCombinedView implements ViewModel {
   public boolean hasGrpcStreaming() {
     for (ClientTestClassView testClass : testClasses()) {
       for (TestCaseView testCase : testClass.testCases()) {
-        if (testCase.grpcStreamingType() != GrpcStreamingType.NonStreaming) {
+        if (testCase.apiMethod().grpcStreamingType() != GrpcStreamingType.NonStreaming) {
           return true;
         }
       }
@@ -51,7 +51,7 @@ public abstract class MockCombinedView implements ViewModel {
   public boolean hasLongRunning() {
     for (ClientTestClassView testClass : testClasses()) {
       for (TestCaseView testCase : testClass.testCases()) {
-        if (testCase.clientMethodType() == ClientMethodType.OperationCallableMethod) {
+        if (testCase.apiMethod().type() == ClientMethodType.OperationCallableMethod) {
           return true;
         }
       }
@@ -111,7 +111,7 @@ public abstract class MockCombinedView implements ViewModel {
   private boolean hasStreamingType(GrpcStreamingType type) {
     for (ClientTestClassView testClass : testClasses()) {
       for (TestCaseView testCase : testClass.testCases()) {
-        if (testCase.grpcStreamingType() == type) {
+        if (testCase.apiMethod().grpcStreamingType() == type) {
           return true;
         }
       }
