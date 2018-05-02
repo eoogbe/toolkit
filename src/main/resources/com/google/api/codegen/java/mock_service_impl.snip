@@ -5,11 +5,11 @@
 
   @@javax.annotation.Generated("by GAPIC")
   @@BetaApi
-  public class {@mockServiceImplFile.serviceImpl.name} extends {@mockServiceImplFile.serviceImpl.mockGrpcClassName} {
+  public class {@mockServiceImplFile.classView.name} extends {@mockServiceImplFile.classView.mockGrpcClassName} {
     private ArrayList<GeneratedMessageV3> requests;
     private Queue<Object> responses;
 
-    public {@mockServiceImplFile.serviceImpl.name}() {
+    public {@mockServiceImplFile.classView.name}() {
       requests = new ArrayList<>();
       responses = new LinkedList<>();
     }
@@ -35,7 +35,7 @@
       responses = new LinkedList<>();
     }
 
-    @join method : mockServiceImplFile.serviceImpl.grpcMethods
+    @join method : mockServiceImplFile.classView.grpcMethods
      {@grpcMethod(method)}
 
     @end

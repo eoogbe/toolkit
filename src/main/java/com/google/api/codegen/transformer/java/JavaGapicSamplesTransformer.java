@@ -28,9 +28,9 @@ import com.google.api.codegen.transformer.ModelTypeTable;
 import com.google.api.codegen.transformer.StandardImportSectionTransformer;
 import com.google.api.codegen.transformer.SurfaceNamer;
 import com.google.api.codegen.util.java.JavaTypeTable;
+import com.google.api.codegen.viewmodel.FileView;
 import com.google.api.codegen.viewmodel.MethodSampleView;
 import com.google.api.codegen.viewmodel.StaticLangApiMethodView;
-import com.google.api.codegen.viewmodel.StaticLangFileView;
 import com.google.api.codegen.viewmodel.StaticLangSampleClassView;
 import com.google.api.codegen.viewmodel.ViewModel;
 import java.io.File;
@@ -85,8 +85,8 @@ public class JavaGapicSamplesTransformer implements ModelToViewTransformer {
     List<ViewModel> files = new ArrayList<>();
     SurfaceNamer namer = context.getNamer();
 
-    StaticLangFileView.Builder<StaticLangSampleClassView> sampleFile =
-        StaticLangFileView.<StaticLangSampleClassView>newBuilder();
+    FileView.Builder<StaticLangSampleClassView> sampleFile =
+        FileView.<StaticLangSampleClassView>newBuilder();
     sampleFile.templateFileName(STANDALONE_SAMPLE_TEMPLATE_FILENAME);
 
     List<StaticLangApiMethodView> allMethods = methodGenerator.generateApiMethods(context);

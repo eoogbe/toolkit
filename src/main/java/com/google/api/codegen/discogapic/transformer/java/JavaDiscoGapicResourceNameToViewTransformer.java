@@ -41,7 +41,7 @@ import com.google.api.codegen.util.Name;
 import com.google.api.codegen.util.SymbolTable;
 import com.google.api.codegen.util.java.JavaNameFormatter;
 import com.google.api.codegen.util.java.JavaTypeTable;
-import com.google.api.codegen.viewmodel.StaticLangApiResourceNameFileView;
+import com.google.api.codegen.viewmodel.FileView;
 import com.google.api.codegen.viewmodel.StaticLangApiResourceNameView;
 import com.google.api.codegen.viewmodel.StaticLangMemberView;
 import com.google.api.codegen.viewmodel.ViewModel;
@@ -139,13 +139,12 @@ public class JavaDiscoGapicResourceNameToViewTransformer implements DocumentToVi
   }
 
   /* Given a ResourceName view, creates a top-level ResourceName file view. */
-  private StaticLangApiResourceNameFileView generateResourceNameFile(
+  private FileView<StaticLangApiResourceNameView> generateResourceNameFile(
       SchemaTransformationContext context, StaticLangApiResourceNameView messageView) {
-    StaticLangApiResourceNameFileView.Builder apiFile =
-        StaticLangApiResourceNameFileView.newBuilder();
+    FileView.Builder<StaticLangApiResourceNameView> apiFile = FileView.newBuilder();
     apiFile.templateFileName(RESOURCE_NAME_TEMPLATE_FILENAME);
     addResourceNameClassImports(context.getImportTypeTable());
-    apiFile.resourceName(messageView);
+    apiFile.classView(messageView);
 
     String outputPath = pathMapper.getOutputPath(null, context.getDocContext().getProductConfig());
     apiFile.outputPath(outputPath + File.separator + messageView.typeName() + ".java");

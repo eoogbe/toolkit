@@ -42,9 +42,9 @@ import com.google.api.codegen.util.Name;
 import com.google.api.codegen.util.VersionMatcher;
 import com.google.api.codegen.util.ruby.RubyTypeTable;
 import com.google.api.codegen.viewmodel.ApiMethodView;
-import com.google.api.codegen.viewmodel.CredentialsClassFileView;
 import com.google.api.codegen.viewmodel.CredentialsClassView;
 import com.google.api.codegen.viewmodel.DynamicLangXApiView;
+import com.google.api.codegen.viewmodel.FileView;
 import com.google.api.codegen.viewmodel.GrpcStreamingDetailView;
 import com.google.api.codegen.viewmodel.ImportFileView;
 import com.google.api.codegen.viewmodel.ImportSectionView;
@@ -270,10 +270,10 @@ public class RubyGapicSurfaceTransformer implements ModelToViewTransformer {
                         .build()))
             .build();
     List<String> modules = namer.getTopLevelApiModules();
-    return CredentialsClassFileView.newBuilder()
+    return FileView.<CredentialsClassView>newBuilder()
         .outputPath("lib" + File.separator + namer.getCredentialsClassImportName() + ".rb")
         .templateFileName(CREDENTIALS_CLASS_TEMPLATE_FILE)
-        .credentialsClass(credentialsClass)
+        .classView(credentialsClass)
         .fileHeader(
             fileHeaderTransformer.generateFileHeader(
                 productConfig, importSection, namer, ImmutableList.copyOf(modules)))

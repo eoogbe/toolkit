@@ -1,4 +1,4 @@
-/* Copyright 2017 Google LLC
+/* Copyright 2016 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,36 +18,36 @@ import com.google.api.codegen.SnippetSetRunner;
 import com.google.auto.value.AutoValue;
 
 @AutoValue
-public abstract class CredentialsClassFileView implements ViewModel {
+public abstract class FileView<ClassViewT> implements ViewModel {
+  @Override
+  public abstract String templateFileName();
+
+  public abstract FileHeaderView fileHeader();
+
+  public abstract ClassViewT classView();
+
+  @Override
+  public abstract String outputPath();
+
   @Override
   public String resourceRoot() {
     return SnippetSetRunner.SNIPPET_RESOURCE_ROOT;
   }
 
-  @Override
-  public abstract String templateFileName();
-
-  @Override
-  public abstract String outputPath();
-
-  public abstract FileHeaderView fileHeader();
-
-  public abstract CredentialsClassView credentialsClass();
-
-  public static Builder newBuilder() {
-    return new AutoValue_CredentialsClassFileView.Builder();
+  public static <ClassViewT> Builder<ClassViewT> newBuilder() {
+    return new AutoValue_FileView.Builder<>();
   }
 
   @AutoValue.Builder
-  public abstract static class Builder {
-    public abstract Builder fileHeader(FileHeaderView val);
+  public abstract static class Builder<ClassViewT> {
+    public abstract Builder<ClassViewT> templateFileName(String val);
 
-    public abstract Builder outputPath(String val);
+    public abstract Builder<ClassViewT> fileHeader(FileHeaderView val);
 
-    public abstract Builder templateFileName(String val);
+    public abstract Builder<ClassViewT> outputPath(String val);
 
-    public abstract Builder credentialsClass(CredentialsClassView val);
+    public abstract Builder<ClassViewT> classView(ClassViewT val);
 
-    public abstract CredentialsClassFileView build();
+    public abstract FileView<ClassViewT> build();
   }
 }

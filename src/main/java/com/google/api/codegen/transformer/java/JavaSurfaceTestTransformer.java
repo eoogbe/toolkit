@@ -44,12 +44,12 @@ import com.google.api.codegen.util.testing.TestValueGenerator;
 import com.google.api.codegen.util.testing.ValueProducer;
 import com.google.api.codegen.viewmodel.ClientMethodType;
 import com.google.api.codegen.viewmodel.FileHeaderView;
+import com.google.api.codegen.viewmodel.FileView;
 import com.google.api.codegen.viewmodel.InitCodeView;
 import com.google.api.codegen.viewmodel.StaticLangApiMethodView;
 import com.google.api.codegen.viewmodel.ViewModel;
 import com.google.api.codegen.viewmodel.testing.ClientTestClassView;
 import com.google.api.codegen.viewmodel.testing.ClientTestFileView;
-import com.google.api.codegen.viewmodel.testing.MockServiceImplFileView;
 import com.google.api.codegen.viewmodel.testing.MockServiceImplView;
 import com.google.api.codegen.viewmodel.testing.MockServiceView;
 import com.google.api.codegen.viewmodel.testing.SmokeTestClassView;
@@ -349,7 +349,7 @@ public class JavaSurfaceTestTransformer implements ModelToViewTransformer {
     return mockService.build();
   }
 
-  private MockServiceImplFileView createMockServiceImplFileView(InterfaceContext context) {
+  private FileView<MockServiceImplView> createMockServiceImplFileView(InterfaceContext context) {
     addMockServiceImplImports(context);
 
     SurfaceNamer namer = context.getNamer();
@@ -362,9 +362,9 @@ public class JavaSurfaceTestTransformer implements ModelToViewTransformer {
             .getImportTypeTable()
             .getAndSaveNicknameFor(namer.getGrpcServiceClassName(context.getInterfaceModel()));
 
-    MockServiceImplFileView.Builder mockServiceImplFile = MockServiceImplFileView.newBuilder();
+    FileView.Builder<MockServiceImplView> mockServiceImplFile = FileView.newBuilder();
 
-    mockServiceImplFile.serviceImpl(
+    mockServiceImplFile.classView(
         MockServiceImplView.newBuilder()
             .name(name)
             .mockGrpcClassName(grpcClassName)

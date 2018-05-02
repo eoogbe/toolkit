@@ -46,6 +46,7 @@ import com.google.api.codegen.util.TypeAlias;
 import com.google.api.codegen.viewmodel.ApiCallSettingsView;
 import com.google.api.codegen.viewmodel.ApiMethodView;
 import com.google.api.codegen.viewmodel.ClientMethodType;
+import com.google.api.codegen.viewmodel.FileView;
 import com.google.api.codegen.viewmodel.ImportSectionView;
 import com.google.api.codegen.viewmodel.PackageInfoView;
 import com.google.api.codegen.viewmodel.PagedResponseIterateMethodView;
@@ -54,7 +55,6 @@ import com.google.api.codegen.viewmodel.SettingsDocView;
 import com.google.api.codegen.viewmodel.StaticLangApiMethodView;
 import com.google.api.codegen.viewmodel.StaticLangApiView;
 import com.google.api.codegen.viewmodel.StaticLangCallableFactoryView;
-import com.google.api.codegen.viewmodel.StaticLangFileView;
 import com.google.api.codegen.viewmodel.StaticLangPagedResponseView;
 import com.google.api.codegen.viewmodel.StaticLangRpcStubView;
 import com.google.api.codegen.viewmodel.StaticLangSettingsView;
@@ -124,7 +124,7 @@ public class JavaSurfaceTransformer {
       InterfaceContext context =
           surfaceTransformer.createInterfaceContext(
               apiInterface, productConfig, namer, typeTable, enableStringFormatFunctions);
-      StaticLangFileView<StaticLangApiView> apiFile = generateApiFile(context, productConfig);
+      FileView<StaticLangApiView> apiFile = generateApiFile(context, productConfig);
       surfaceDocs.add(apiFile);
 
       serviceDocs.add(apiFile.classView().doc());
@@ -133,23 +133,23 @@ public class JavaSurfaceTransformer {
           getExampleApiMethod(apiFile.classView().apiMethods());
 
       context = context.withNewTypeTable(namer.getStubPackageName());
-      StaticLangFileView<StaticLangStubSettingsView> stubSettingsFile =
+      FileView<StaticLangStubSettingsView> stubSettingsFile =
           generateStubSettingsFile(context, productConfig, exampleApiMethod);
 
       context = context.withNewTypeTable(namer.getRootPackageName());
-      StaticLangFileView<StaticLangSettingsView> settingsFile =
+      FileView<StaticLangSettingsView> settingsFile =
           generateSettingsFile(
               context, productConfig, exampleApiMethod, stubSettingsFile.classView());
       surfaceDocs.add(settingsFile);
       surfaceDocs.add(stubSettingsFile);
 
       context = context.withNewTypeTable(namer.getStubPackageName());
-      StaticLangFileView<StaticLangStubInterfaceView> stubInterfaceFile =
+      FileView<StaticLangStubInterfaceView> stubInterfaceFile =
           generateStubInterfaceFile(context, productConfig);
       surfaceDocs.add(stubInterfaceFile);
 
       context = context.withNewTypeTable(namer.getStubPackageName());
-      StaticLangFileView<StaticLangRpcStubView> grpcStubFile =
+      FileView<StaticLangRpcStubView> grpcStubFile =
           generateRpcStubClassFile(context, productConfig);
       surfaceDocs.add(grpcStubFile);
       surfaceDocs.add(generateCallableFactoryClassFile(context, productConfig));
@@ -161,10 +161,9 @@ public class JavaSurfaceTransformer {
     return surfaceDocs;
   }
 
-  private StaticLangFileView<StaticLangApiView> generateApiFile(
+  private FileView<StaticLangApiView> generateApiFile(
       InterfaceContext context, GapicProductConfig productConfig) {
-    StaticLangFileView.Builder<StaticLangApiView> apiFile =
-        StaticLangFileView.<StaticLangApiView>newBuilder();
+    FileView.Builder<StaticLangApiView> apiFile = FileView.<StaticLangApiView>newBuilder();
 
     apiFile.templateFileName(API_TEMPLATE_FILENAME);
 
@@ -328,12 +327,11 @@ public class JavaSurfaceTransformer {
     return null;
   }
 
-  private StaticLangFileView<StaticLangStubSettingsView> generateStubSettingsFile(
+  private FileView<StaticLangStubSettingsView> generateStubSettingsFile(
       InterfaceContext context,
       GapicProductConfig productConfig,
       StaticLangApiMethodView exampleApiMethod) {
-    StaticLangFileView.Builder<StaticLangStubSettingsView> settingsFile =
-        StaticLangFileView.newBuilder();
+    FileView.Builder<StaticLangStubSettingsView> settingsFile = FileView.newBuilder();
 
     settingsFile.classView(generateStubSettingsClass(context, productConfig, exampleApiMethod));
     settingsFile.templateFileName(STUB_SETTINGS_TEMPLATE_FILENAME);
@@ -350,13 +348,12 @@ public class JavaSurfaceTransformer {
     return settingsFile.build();
   }
 
-  private StaticLangFileView<StaticLangSettingsView> generateSettingsFile(
+  private FileView<StaticLangSettingsView> generateSettingsFile(
       InterfaceContext context,
       GapicProductConfig productConfig,
       StaticLangApiMethodView exampleApiMethod,
       StaticLangStubSettingsView stubSettingsView) {
-    StaticLangFileView.Builder<StaticLangSettingsView> settingsFile =
-        StaticLangFileView.newBuilder();
+    FileView.Builder<StaticLangSettingsView> settingsFile = FileView.newBuilder();
 
     settingsFile.classView(
         generateSettingsClass(context, productConfig, exampleApiMethod, stubSettingsView));
@@ -492,10 +489,10 @@ public class JavaSurfaceTransformer {
     return xsettingsClass.build();
   }
 
-  private StaticLangFileView<StaticLangStubInterfaceView> generateStubInterfaceFile(
+  private FileView<StaticLangStubInterfaceView> generateStubInterfaceFile(
       InterfaceContext context, GapicProductConfig productConfig) {
-    StaticLangFileView.Builder<StaticLangStubInterfaceView> fileView =
-        StaticLangFileView.<StaticLangStubInterfaceView>newBuilder();
+    FileView.Builder<StaticLangStubInterfaceView> fileView =
+        FileView.<StaticLangStubInterfaceView>newBuilder();
 
     fileView.classView(generateStubInterface(context, productConfig));
     fileView.templateFileName(STUB_INTERFACE_TEMPLATE_FILENAME);
@@ -543,9 +540,9 @@ public class JavaSurfaceTransformer {
     return stubInterface.build();
   }
 
-  private StaticLangFileView<StaticLangRpcStubView> generateRpcStubClassFile(
+  private FileView<StaticLangRpcStubView> generateRpcStubClassFile(
       InterfaceContext context, GapicProductConfig productConfig) {
-    StaticLangFileView.Builder<StaticLangRpcStubView> fileView = StaticLangFileView.newBuilder();
+    FileView.Builder<StaticLangRpcStubView> fileView = FileView.newBuilder();
 
     fileView.classView(generateRpcStubClass(context, productConfig));
     fileView.templateFileName(rpcStubTemplateFilename);
@@ -616,10 +613,9 @@ public class JavaSurfaceTransformer {
     return stubClass.build();
   }
 
-  private StaticLangFileView<StaticLangCallableFactoryView> generateCallableFactoryClassFile(
+  private FileView<StaticLangCallableFactoryView> generateCallableFactoryClassFile(
       InterfaceContext context, GapicProductConfig productConfig) {
-    StaticLangFileView.Builder<StaticLangCallableFactoryView> fileView =
-        StaticLangFileView.newBuilder();
+    FileView.Builder<StaticLangCallableFactoryView> fileView = FileView.newBuilder();
 
     fileView.classView(generateCallableFactoryClass(context, productConfig));
     fileView.templateFileName(callableFactoryTemplateFilename);

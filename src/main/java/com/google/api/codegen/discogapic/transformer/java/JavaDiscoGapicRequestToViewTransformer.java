@@ -48,8 +48,8 @@ import com.google.api.codegen.util.Name;
 import com.google.api.codegen.util.SymbolTable;
 import com.google.api.codegen.util.java.JavaNameFormatter;
 import com.google.api.codegen.util.java.JavaTypeTable;
+import com.google.api.codegen.viewmodel.FileView;
 import com.google.api.codegen.viewmodel.RequestObjectParamView;
-import com.google.api.codegen.viewmodel.StaticLangApiMessageFileView;
 import com.google.api.codegen.viewmodel.StaticLangApiMessageView;
 import com.google.api.codegen.viewmodel.ViewModel;
 import com.google.common.base.Strings;
@@ -176,12 +176,12 @@ public class JavaDiscoGapicRequestToViewTransformer implements DocumentToViewTra
   }
 
   /* Given a message view, creates a top-level message file view. */
-  private StaticLangApiMessageFileView generateRequestFile(
+  private FileView<StaticLangApiMessageView> generateRequestFile(
       SchemaTransformationContext context, StaticLangApiMessageView messageView) {
-    StaticLangApiMessageFileView.Builder apiFile = StaticLangApiMessageFileView.newBuilder();
+    FileView.Builder<StaticLangApiMessageView> apiFile = FileView.newBuilder();
     apiFile.templateFileName(REQUEST_TEMPLATE_FILENAME);
     addApiImports(context.getImportTypeTable());
-    apiFile.schema(messageView);
+    apiFile.classView(messageView);
 
     String outputPath = pathMapper.getOutputPath(null, context.getDocContext().getProductConfig());
     apiFile.outputPath(outputPath + File.separator + messageView.typeName() + ".java");
