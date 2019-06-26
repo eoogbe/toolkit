@@ -230,6 +230,77 @@ unzipped_srcjar = rule(
     },
 )
 
+def _gapic_pkg_metadata_config_impl(ctx):
+    api_dirs = ctx.attr.service_yaml.label.package.split("/")
+    api_name = api_dirs[-1]
+    api_name_idx = len(api_dirs) - 1
+
+    package_dirs = ctx.label.package.split("/")[api_name_idx + 1:]
+    api_version_idx, api_version = _get_api_version(package_dirs)
+    proto_dirs = package_dirs[:api_version_idx + 1]
+
+    dep_packages = "\n".join([
+        "- name: %s" % dep for dep in ctx.attr.dep_packages
+    ])
+
+    config_content = """\
+api_name: {api_name}
+api_version: {api_version}
+organization_name: {organization_name}
+proto_deps:
+{dep_packages}
+proto_path: {proto_path}
+artifact_type: {artifact_type}
+""".format(
+        api_name = api_name,
+        api_version = api_version,
+        organization_name = ctx.attr.organization_name,
+        dep_packages = dep_packages,
+        proto_path = "/".join(proto_dirs) if proto_dirs else ".",
+        artifact_type = ctx.attr.artifact_type,
+    )
+
+    ctx.actions.write(
+        output = ctx.outputs.config,
+        content = config_content,
+    )
+
+gapic_pkg_metadata_config = rule(
+    implementation = _gapic_pkg_metadata_config_impl,
+    attrs = {
+        "service_yaml": attr.label(
+            doc = """The service config file.
+            Should be located at the root of the API, so that the package
+            metadata can be accurately determined.
+            """,
+            mandatory = True,
+            allow_single_file = True,
+        ),
+        "organization_name": attr.string(
+            doc = "The name of the organization that owns the package.",
+            mandatory = True,
+        ),
+        "dep_packages": attr.string_list(
+            doc = """The API-specific dependency proto packages for the
+            generated GAPIC client library.
+            """,
+            mandatory = False,
+            default = [],
+        ),
+        "artifact_type": attr.string(
+            doc = "The type of GAPIC client artifact to generate."
+            mandatory = False,
+            default = "GAPIC_CODE",
+        ),
+    },
+    outputs = {
+        "config": "%{name}.yaml",
+    },
+    doc = """Generates the package metadata config file needed by some languages
+    for GAPIC client generation.
+    """,
+)
+
 #
 # Private helper functions
 #
@@ -237,3 +308,37 @@ def _path_ignoring_repository(f):
     if f.owner.workspace_root:
         return f.path[f.path.find(f.owner.workspace_root) + len(f.owner.workspace_root) + 1:]
     return f.short_path
+
+def _get_api_version(package_dirs):
+    """Finds the directory whose name is the API version.
+    """
+    for idx, dir in enumerate(package_dirs):
+        if _is_api_version(dir):
+            return idx, dir
+
+    return len(package_dirs) - 1, "v1"
+
+def _is_api_version(s):
+    """Returns true if the specified string represents an API version.
+
+    API version strings must consist of (in order):
+      1) "v"
+      2) A positive number
+      3) Optionally, a release channel name, e.g. "beta1"
+
+    Because Starlark does not support regex, we have to check in a more verbose
+    manner.
+    """
+    if len(s) < 2:
+        return False
+
+    if not s.startswith("v"):
+        return False
+
+    if not s[1].isdigit():
+        return False
+
+    if int(s[1]) < 1:
+        return False
+
+    return True
