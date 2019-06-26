@@ -2,6 +2,8 @@
 @extends "csharp/commandline.snip"
 @extends "csharp/common.snip"
 @extends "csharp/common_initcode.snip"
+@extends "csharp/response.snip"
+@extends "metadatagen/samplegen.snip"
 
 # StaticLangFileView
 @snippet generate(sampleFile)
@@ -11,101 +13,107 @@
 
             // This is a generated sample ("{@sample.callingForm}", "{@sample.valueSet.id}")
 
-            // [START {@sample.regionTag}]
-            // FIXME: import everything this sample needs
-            @if sample.sampleImports
-                {@imports(sample.sampleImports)}
-
+            // sample-metadata
+            //   title: {@sample.title}
+            @if sample.descriptionLine
+                {@descriptionLines("//", sample.descriptionLine, sample.additionalDescriptionLines)}
             @end
-            public class {@sampleClass.name}
+            //   usage: dotnet run {@commandlineArgumentList(sample.sampleInitCode.argDefaultParams)}
+
+            // [START {@sample.regionTag}]
+            namespace {@sampleFile.fileHeader.packageName}.Samples
             {
-                // [START {@sample.regionTag}_core]
-                @if not(sample.sampleFunctionDoc.isEmpty)
-                    {@processDoc(sample.sampleFunctionDoc)}
-                @end
-                @switch sample.callingForm
-                #
-                # Unary Methods
-                #
-                @case "Request"
-                    {@unaryMethod(apiMethod, sample)}
-                @case"Flattened"
-                    {@unaryMethod(apiMethod, sample)}
-                @case "RequestAsync"
-                    {@unaryAsyncMethod(apiMethod, sample)}
-                @case "FlattenedAsync"
-                    {@unaryAsyncMethod(apiMethod, sample)}
-                #
-                # Pagination
-                #
-                @case "RequestPaged"
-                    {@pagedMethod(apiMethod, sample)}
-                @case "FlattenedPaged"
-                    {@pagedMethod(apiMethod, sample)}
-                @case "RequestPagedAll"
-                    {@pagedAllMethod(apiMethod, sample)}
-                @case "FlattenedPagedAll"
-                    {@pagedAllMethod(apiMethod, sample)}
-                @case "RequestPagedPageSize"
-                    {@pagedPageSizeMethod(apiMethod, sample)}
-                @case "FlattenedPagedPageSize"
-                    {@pagedPageSizeMethod(apiMethod, sample)}
-                @case "RequestAsyncPaged"
-                    {@pagedAsyncMethod(apiMethod, sample)}
-                @case "FlattenedAsyncPaged"
-                    {@pagedAsyncMethod(apiMethod, sample)}
-                @case "RequestAsyncPagedAll"
-                    {@pagedAllAsyncMethod(apiMethod, sample)}
-                @case "FlattenedAsyncPagedAll"
-                    {@pagedAllAsyncMethod(apiMethod, sample)}
-                @case "RequestAsyncPagedPageSize"
-                    {@pagedPageSizeAsyncMethod(apiMethod, sample)}
-                @case "FlattenedAsyncPagedPageSize"
-                    {@pagedPageSizeAsyncMethod(apiMethod, sample)}
-                #
-                # LRO
-                #
-                @case "LongRunningRequestPollUntilComplete"
-                    {@longRunningPollUntilCompleteMethod(apiMethod, sample)}
-                @case "LongRunningFlattenedPollUntilComplete"
-                    {@longRunningPollUntilCompleteMethod(apiMethod, sample)}
-                @case "LongRunningRequestPollLater"
-                    {@longRunningPollLaterMethod(apiMethod, sample)}
-                @case "LongRunningFlattenedPollLater"
-                    {@longRunningPollLaterMethod(apiMethod, sample)}
-                @case "LongRunningRequestAsyncPollUntilComplete"
-                    {@longRunningAsyncPollUntilCompleteMethod(apiMethod, sample)}
-                @case "LongRunningFlattenedAsycPollUntilComplete"
-                    {@longRunningAsyncPollUntilCompleteMethod(apiMethod, sample)}
-                @case "LongRunningRequestAsyncPollLater"
-                    {@longRunningAsyncPollLaterMethod(apiMethod, sample)}
-                @case "LongRunningFlattenedAsycPollLater"
-                    {@longRunningAsyncPollLaterMethod(apiMethod, sample)}
-                #
-                # gRPC streaming
-                #
-                @case "RequestStreamingBidi"
-                    {@streamingBidiMethod(apiMethod, sample)}
-                @case "FlattenedStreamingBidi"
-                    {@streamingBidiMethod(apiMethod, sample)}
-                @case "RequestStreamingServer"
-                    {@streamingServerMethod(apiMethod, sample)}
-                @case "FlattenedStreamingServer"
-                    {@streamingServerMethod(apiMethod, sample)}
-                @default
-                    Unrecognized callingForm: {@sample.callingForm}
-                @end
-                // [END {@sample.regionTag}_core]
+                @if sample.sampleImports.appImports
+                    {@imports(sample.sampleImports)}
 
-                // [END {@sample.regionTag}]
-                public static void Main(string[] args)
+                @end
+                public class {@sampleClass.name}
                 {
-                    {@processCliArguments(sample)}
-                }
-                @if sample.sampleInitCode.argDefaultParams
+                    @if not(sample.sampleFunctionDoc.isEmpty)
+                        {@processDoc(sample.sampleFunctionDoc)}
+                    @end
+                    @switch sample.callingForm
+                    #
+                    # Unary Methods
+                    #
+                    @case "Request"
+                        {@unaryMethod(apiMethod, sample)}
+                    @case"Flattened"
+                        {@unaryMethod(apiMethod, sample)}
+                    @case "RequestAsync"
+                        {@unaryAsyncMethod(apiMethod, sample)}
+                    @case "FlattenedAsync"
+                        {@unaryAsyncMethod(apiMethod, sample)}
+                    #
+                    # Pagination
+                    #
+                    @case "RequestPaged"
+                        {@pagedMethod(apiMethod, sample)}
+                    @case "FlattenedPaged"
+                        {@pagedMethod(apiMethod, sample)}
+                    @case "RequestPagedAll"
+                        {@pagedAllMethod(apiMethod, sample)}
+                    @case "FlattenedPagedAll"
+                        {@pagedAllMethod(apiMethod, sample)}
+                    @case "RequestPagedPageSize"
+                        {@pagedPageSizeMethod(apiMethod, sample)}
+                    @case "FlattenedPagedPageSize"
+                        {@pagedPageSizeMethod(apiMethod, sample)}
+                    @case "RequestAsyncPaged"
+                        {@pagedAsyncMethod(apiMethod, sample)}
+                    @case "FlattenedAsyncPaged"
+                        {@pagedAsyncMethod(apiMethod, sample)}
+                    @case "RequestAsyncPagedAll"
+                        {@pagedAllAsyncMethod(apiMethod, sample)}
+                    @case "FlattenedAsyncPagedAll"
+                        {@pagedAllAsyncMethod(apiMethod, sample)}
+                    @case "RequestAsyncPagedPageSize"
+                        {@pagedPageSizeAsyncMethod(apiMethod, sample)}
+                    @case "FlattenedAsyncPagedPageSize"
+                        {@pagedPageSizeAsyncMethod(apiMethod, sample)}
+                    #
+                    # LRO
+                    #
+                    @case "LongRunningRequestPollUntilComplete"
+                        {@longRunningPollUntilCompleteMethod(apiMethod, sample)}
+                    @case "LongRunningFlattenedPollUntilComplete"
+                        {@longRunningPollUntilCompleteMethod(apiMethod, sample)}
+                    @case "LongRunningRequestPollLater"
+                        {@longRunningPollLaterMethod(apiMethod, sample)}
+                    @case "LongRunningFlattenedPollLater"
+                        {@longRunningPollLaterMethod(apiMethod, sample)}
+                    @case "LongRunningRequestAsyncPollUntilComplete"
+                        {@longRunningAsyncPollUntilCompleteMethod(apiMethod, sample)}
+                    @case "LongRunningFlattenedAsycPollUntilComplete"
+                        {@longRunningAsyncPollUntilCompleteMethod(apiMethod, sample)}
+                    @case "LongRunningRequestAsyncPollLater"
+                        {@longRunningAsyncPollLaterMethod(apiMethod, sample)}
+                    @case "LongRunningFlattenedAsycPollLater"
+                        {@longRunningAsyncPollLaterMethod(apiMethod, sample)}
+                    #
+                    # gRPC streaming
+                    #
+                    @case "RequestStreamingBidi"
+                        {@streamingBidiMethod(apiMethod, sample)}
+                    @case "FlattenedStreamingBidi"
+                        {@streamingBidiMethod(apiMethod, sample)}
+                    @case "RequestStreamingServer"
+                        {@streamingServerMethod(apiMethod, sample)}
+                    @case "FlattenedStreamingServer"
+                        {@streamingServerMethod(apiMethod, sample)}
+                    @default
+                        Unrecognized callingForm: {@sample.callingForm}
+                    @end
+                    // [END {@sample.regionTag}]
+                    public static void Main(string[] args)
+                    {
+                        {@processCliArguments(sample)}
+                    }
+                    @if sample.sampleInitCode.argDefaultParams
 
-                    {@optionsClass(sample, apiMethod)}
-                @end
+                        {@optionsClass(sample, apiMethod)}
+                    @end
+                }
             }
         @end
     @end
@@ -118,7 +126,9 @@
         {@syncClient(apiMethod)}
         {@standaloneSampleInitCode(sample.sampleInitCode)}
         {@methodCall(apiMethod, sample)}
-        // FIXME: inspect the results
+        @if sample.outputs
+            {@processOutputViews(sample.outputs)}
+        @end
     }
 @end
 
@@ -128,7 +138,9 @@
         {@asyncClient(apiMethod)}
         {@standaloneSampleInitCode(sample.sampleInitCode)}
         {@asyncMethodCall(apiMethod, sample)}
-        // FIXME: inspect the results
+        @if sample.outputs
+            {@processOutputViews(sample.outputs)}
+        @end
     }
 @end
 
@@ -138,7 +150,9 @@
         {@asyncClient(apiMethod)}
         {@standaloneSampleInitCode(sample.sampleInitCode)}
         {@asyncMethodCall(apiMethod, sample)}
-        // FIXME: inspect the results
+        @if sample.outputs
+            {@processOutputViews(sample.outputs)}
+        @end
     }
 @end
 
@@ -152,7 +166,6 @@
         {@apiMethod.callerResponseTypeName} response = {@apiMethod.apiVariableName}.{@apiMethod.name}(\
             {@rpcMethodCallArgList(sample.sampleInitCode.fieldSettings, FALSE)});
         {@paging(apiMethod, sample)}
-        // FIXME: inspect the results
     }
 @end
 
@@ -276,8 +289,10 @@
                     IAsyncEnumerator<{@apiMethod.serviceResponseTypeName}> responseStream = duplexStream.ResponseStream;
                     while (await responseStream.MoveNext())
                     {
-                            {@apiMethod.serviceResponseTypeName} response = responseStream.Current;
-                            // FIXME: inspect the results
+                        {@apiMethod.serviceResponseTypeName} response = responseStream.Current;
+                        @if sample.outputs
+                            {@processOutputViews(sample.outputs)}
+                        @end
                     }
                     // The response stream has completed
                 });
@@ -316,7 +331,9 @@
         while (await responseStream.MoveNext())
         {
             {@snippetMethod.method.serviceResponseTypeName} response = responseStream.Current;
-            // FIXME: inspect the results
+            @if sample.outputs
+                {@processOutputViews(sample.outputs)}
+            @end
         }
         // The response stream has completed
     }
@@ -372,7 +389,9 @@
     {
         foreach ({@apiMethod.listMethod.resourceTypeName} item in page)
         {
-            // FIXME: inspect the results
+            @if sample.outputs
+                {@processOutputViews(sample.outputs)}
+            @end
         }
     }
 @end
@@ -381,7 +400,9 @@
     // Iterate over pages (of server-defined size), performing one RPC per page
     foreach ({@apiMethod.listMethod.resourceTypeName} item in response)
     {
-        // FIXME: inspect the results
+        @if sample.outputs
+            {@processOutputViews(sample.outputs)}
+        @end
     }
 @end
 
@@ -391,7 +412,9 @@
     Page<{@apiMethod.listMethod.resourceTypeName}> singlePage = response.ReadPage(pageSize);
     foreach ({@apiMethod.listMethod.resourceTypeName} item in response)
     {
-        // FIXME: inspect the results
+        @if sample.outputs
+            {@processOutputViews(sample.outputs)}
+        @end
     }
     // Store the pageToken, for when the next page is required.
     string nextPageToken = singlePage.NextPageToken;
@@ -403,7 +426,9 @@
     {
         foreach ({@apiMethod.listMethod.resourceTypeName} item in page)
         {
-            // FIXME: inspect the results
+            @if sample.outputs
+                {@processOutputViews(sample.outputs)}
+            @end
         }
     });
 @end
@@ -412,7 +437,9 @@
     // Iterate over pages (of server-defined size), performing one RPC per page
     await response.ForEachAsync(({@apiMethod.listMethod.resourceTypeName} item) =>
     {
-        // FIXME: inspect the results
+        @if sample.outputs
+            {@processOutputViews(sample.outputs)}
+        @end
     });
 @end
 
@@ -422,7 +449,9 @@
     Page<{@apiMethod.listMethod.resourceTypeName}> singlePage = await response.ReadPageAsync(pageSize);
     foreach ({@apiMethod.listMethod.resourceTypeName} item in response)
     {
-        // FIXME: inspect the results
+        @if sample.outputs
+            {@processOutputViews(sample.outputs)}
+        @end
     }
     // Store the pageToken, for when the next page is required.
     string nextPageToken = singlePage.NextPageToken;
@@ -431,13 +460,17 @@
 @private pollOperationUntilCompleteSync(apiMethod, sample)
     // Poll until the returned long-running operation is complete
     {@methodCall(apiMethod, sample)}.PollUntilCompleted(){@if(apiMethod.hasReturnValue, ".Result", "")};
-    // FIXME: inspect the results
+    @if sample.outputs
+        {@processOutputViews(sample.outputs)}
+    @end
 @end
 
 @private pollOperationUntilCompleteAsync(apiMethod, sample)
     // Poll until the returned long-running operation is complete
     {@methodCall(apiMethod, sample)}.PollUntilCompletedAsync(){@if(apiMethod.hasReturnValue, ".Result", "")};
-    // FIXME: inspect the results
+    @if sample.outputs
+        {@processOutputViews(sample.outputs)}
+    @end
 @end
 
 @private pollOperationLaterSync(apiMethod, sample)
@@ -446,7 +479,9 @@
 
     // This name can be stored, then the long-running operation retrieved later by name
     // FIXME: process LRO result
-    // FIXME: inspect the results
+    @if sample.outputs
+        {@processOutputViews(sample.outputs)}
+    @end
 @end
 
 @private pollOperationLaterAsync(apiMethod, sample)
@@ -455,7 +490,9 @@
 
     // This name can be stored, then the long-running operation retrieved later by name
     // FIXME: process LRO result
-    // FIXME: inspect the results
+    @if sample.outputs
+        {@processOutputViews(sample.outputs)}
+    @end
 @end
 
 # SampleFunctionDocView

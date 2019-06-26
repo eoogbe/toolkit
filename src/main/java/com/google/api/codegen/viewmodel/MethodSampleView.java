@@ -50,6 +50,12 @@ public abstract class MethodSampleView {
   /** Used by Node.js and C#. */
   public abstract boolean usesAsyncAwaitPattern();
 
+  public abstract String title();
+
+  public abstract String descriptionLine();
+
+  public abstract ImmutableList<String> additionalDescriptionLines();
+
   public static Builder newBuilder() {
     return new AutoValue_MethodSampleView.Builder();
   }
@@ -75,6 +81,12 @@ public abstract class MethodSampleView {
     public abstract Builder hasMultipleFileOutputs(boolean hasMultipleFileOutputs);
 
     public abstract Builder usesAsyncAwaitPattern(boolean val);
+
+    public abstract Builder title(String val);
+
+    public abstract Builder descriptionLine(String val);
+
+    public abstract Builder additionalDescriptionLines(ImmutableList<String> val);
 
     public abstract MethodSampleView build();
   }

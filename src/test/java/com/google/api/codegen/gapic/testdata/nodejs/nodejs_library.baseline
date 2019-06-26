@@ -1,63 +1,6 @@
 ============== file: README.md ==============
-# Node.js Clients for Google Example Library API ([Production/Stable](https://github.com/GoogleCloudPlatform/google-cloud-node#versioning))
-
-[Google Example Library API][Product Documentation]:
-A simple Google Example Library API.
-- [Client Library Documentation][]
-- [Product Documentation][]
-
-## Quick Start
-In order to use this library, you first need to go through the following
-steps:
-
-1. [Select or create a Cloud Platform project.](https://console.cloud.google.com/project)
-2. [Enable billing for your project.](https://cloud.google.com/billing/docs/how-to/modify-project#enable_billing_for_a_project)
-3. [Enable the Google Example Library API.](https://console.cloud.google.com/apis/library/library.googleapis.com)
-4. [Setup Authentication.](https://googlecloudplatform.github.io/google-cloud-node/#/docs/google-cloud/master/guides/authentication)
-
-### Installation
-```
-$ npm install --save @google-cloud/library
-```
-
-### Preview
-#### LibraryServiceClient
-```js
- const library = require('@google-cloud/library');
-
- const client = library.LibraryServiceClient({
-   // optional auth parameters.
- });
-
- const formattedName = client.bookPath("testShelf-" + Date.now().toString(), projectId);
- const rating = 'GOOD';
- const book = {
-   rating: rating,
- };
- const request = {
-   name: formattedName,
-   book: book,
- };
- client.updateBook(request)
-   .then(responses => {
-     const response = responses[0];
-     // doThingsWith(response)
-   })
-   .catch(err => {
-     console.error(err);
-   });
-```
-
-### Next Steps
-- Read the [Client Library Documentation][] for Google Example Library API
-  to see other available methods on the client.
-- Read the [Google Example Library API Product documentation][Product Documentation]
-  to learn more about the product and see How-to Guides.
-- View this [repository's main README](https://github.com/GoogleCloudPlatform/google-cloud-node/blob/master/README.md)
-  to see the full list of Cloud APIs that we cover.
-
-[Client Library Documentation]: https://googlecloudplatform.github.io/google-cloud-node/#/docs/library
-[Product Documentation]: https://cloud.google.com/library
+# Node.js Clients for Google Example Library API
+This is a generated README.md placeholder. Put your own documentation here.
 ============== file: package.json ==============
 {
   "repository": "GoogleCloudPlatform/google-cloud-node",
@@ -86,17 +29,16 @@ $ npm install --save @google-cloud/library
     "Google Example Library API"
   ],
   "dependencies": {
-    "google-gax": "^1.1.0",
     "google-some-other-package-v1": "^0.2.1",
     "lodash.union": "^4.6.0",
-    "protobufjs": "^6.8.0"
+    "protobufjs": "^6.8.0",
+    "google-gax": "^1.1.0"
   },
   "devDependencies": {
     "mocha": "^5.2.0",
     "through2": "^2.0.3"
   },
   "scripts": {
-    "publish-module": "node ../../scripts/publish.js library",
     "smoke-test": "mocha smoke-test/*.js --timeout 5000",
     "test": "mocha test/*.js"
   },
@@ -127,8 +69,12 @@ $ npm install --save @google-cloud/library
 // DO NOT EDIT! This is a generated sample ("RequestStreamingClient",  "empty_response_type_with_response_handling")
 'use strict';
 
+// sample-metadata:
+//   title: Test response handling for methods that return empty
+//   description: Test response handling for methods that return empty
+//   usage: node samples/v1/babble_about_book_request_streaming_client_empty_response_type_with_response_handling.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -148,8 +94,6 @@ function sampleBabbleAboutBook() {
   stream.write(request);
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -158,8 +102,12 @@ sampleBabbleAboutBook();
 // DO NOT EDIT! This is a generated sample ("RequestStreamingClient",  "empty_response_type_without_response_handling")
 'use strict';
 
+// sample-metadata:
+//   title: Test default response handling is turned off for methods that return empty
+//   description: Test default response handling is turned off for methods that return empty
+//   usage: node samples/v1/babble_about_book_request_streaming_client_empty_response_type_without_response_handling.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -177,8 +125,6 @@ function sampleBabbleAboutBook() {
   stream.write(request);
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -187,8 +133,12 @@ sampleBabbleAboutBook();
 // DO NOT EDIT! This is a generated sample ("Request",  "empty_response_type_with_response_handling")
 'use strict';
 
+// sample-metadata:
+//   title: Test response handling for methods that return empty
+//   description: Test response handling for methods that return empty
+//   usage: node samples/v1/delete_shelf_request_empty_response_type_with_response_handling.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -203,8 +153,6 @@ function sampleDeleteShelf() {
   console.log(`Shelf deleted.`);
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -213,8 +161,12 @@ sampleDeleteShelf();
 // DO NOT EDIT! This is a generated sample ("Request",  "empty_response_type_without_response_handling")
 'use strict';
 
+// sample-metadata:
+//   title: Test default response handling is turned off for methods that return empty
+//   description: Test default response handling is turned off for methods that return empty
+//   usage: node samples/v1/delete_shelf_request_empty_response_type_without_response_handling.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -227,8 +179,6 @@ function sampleDeleteShelf() {
   });
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -237,8 +187,12 @@ sampleDeleteShelf();
 // DO NOT EDIT! This is a generated sample ("RequestAsyncPagedAll",  "odyssey")
 'use strict';
 
+// sample-metadata:
+//   title: The Odyssey
+//   description: Testing calling forms
+//   usage: node samples/v1/find_related_books_request_async_paged_all_odyssey.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -268,8 +222,6 @@ function sampleFindRelatedBooks() {
     });
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -278,8 +230,12 @@ sampleFindRelatedBooks();
 // DO NOT EDIT! This is a generated sample ("RequestAsyncPaged",  "odyssey")
 'use strict';
 
+// sample-metadata:
+//   title: The Odyssey
+//   description: Testing calling forms
+//   usage: node samples/v1/find_related_books_request_async_paged_odyssey.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -321,8 +277,6 @@ function sampleFindRelatedBooks() {
     });
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -331,15 +285,19 @@ sampleFindRelatedBooks();
 // DO NOT EDIT! This is a generated sample ("LongRunningEventEmitter",  "wap")
 'use strict';
 
+// sample-metadata:
+//   title: GetBigBook: 'War and Peace'
+//   description: Testing calling forms
+//   usage: node samples/v1/get_big_book_long_running_event_emitter_wap.js [--shelf "Novel\\\"\`\b\t\n\r"]
+
 // [START hopper]
-// [START hopper_core]
 
 const library = require('@google-cloud/library').v1;
 
 /** Testing calling forms */
 function sampleGetBigBook(shelf) {
   const client = new library.LibraryServiceClient();
-  // const shelf = 'Novel';
+  // const shelf = 'Novel\\"`\b\t\n\r';
   const formattedName = client.bookPath(shelf, 'War and Peace');
 
   // Handle the operation using the event emitter pattern.
@@ -385,14 +343,12 @@ function sampleGetBigBook(shelf) {
     });
 }
 
-
-// [END hopper_core]
 // [END hopper]
 // tslint:disable-next-line:no-any
 
 const argv = require(`yargs`)
   .option('shelf', {
-    default: 'Novel',
+    default: 'Novel\\"`\b\t\n\r',
     string: true
   })
   .argv;
@@ -402,8 +358,12 @@ sampleGetBigBook(argv.shelf);
 // DO NOT EDIT! This is a generated sample ("LongRunningEventEmitter",  "wap2")
 'use strict';
 
+// sample-metadata:
+//   title: GetBigBook: 'War and Peace'
+//   description: Testing resource name overlap
+//   usage: node samples/v1/get_big_book_long_running_event_emitter_wap2.js [--shelf Novel] [--big_book_name "War and Peace"]
+
 // [START hopper]
-// [START hopper_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -447,8 +407,6 @@ function sampleGetBigBook(shelf, bigBookName) {
     });
 }
 
-
-// [END hopper_core]
 // [END hopper]
 // tslint:disable-next-line:no-any
 
@@ -468,15 +426,19 @@ sampleGetBigBook(argv.shelf, argv.big_book_name);
 // DO NOT EDIT! This is a generated sample ("LongRunningPromiseAwait",  "wap")
 'use strict';
 
+// sample-metadata:
+//   title: GetBigBook: 'War and Peace'
+//   description: Testing calling forms
+//   usage: node samples/v1/get_big_book_long_running_promise_await_wap.js [--shelf "Novel\\\"\`\b\t\n\r"]
+
 // [START hopper]
-// [START hopper_core]
 
 const library = require('@google-cloud/library').v1;
 
 /** Testing calling forms */
 async function sampleGetBigBook(shelf) {
   const client = new library.LibraryServiceClient();
-  // const shelf = 'Novel';
+  // const shelf = 'Novel\\"`\b\t\n\r';
   const formattedName = client.bookPath(shelf, 'War and Peace');
 
   // Create a job whose results you can either wait for now, or get later
@@ -504,14 +466,12 @@ async function sampleGetBigBook(shelf) {
   console.log(`author: ${response.author}`);
 }
 
-
-// [END hopper_core]
 // [END hopper]
 // tslint:disable-next-line:no-any
 
 const argv = require(`yargs`)
   .option('shelf', {
-    default: 'Novel',
+    default: 'Novel\\"`\b\t\n\r',
     string: true
   })
   .argv;
@@ -521,8 +481,12 @@ sampleGetBigBook(argv.shelf).catch(console.error);
 // DO NOT EDIT! This is a generated sample ("LongRunningPromiseAwait",  "wap2")
 'use strict';
 
+// sample-metadata:
+//   title: GetBigBook: 'War and Peace'
+//   description: Testing resource name overlap
+//   usage: node samples/v1/get_big_book_long_running_promise_await_wap2.js [--shelf Novel] [--big_book_name "War and Peace"]
+
 // [START hopper]
-// [START hopper_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -548,8 +512,6 @@ async function sampleGetBigBook(shelf, bigBookName) {
   console.log(response);
 }
 
-
-// [END hopper_core]
 // [END hopper]
 // tslint:disable-next-line:no-any
 
@@ -569,15 +531,19 @@ sampleGetBigBook(argv.shelf, argv.big_book_name).catch(console.error);
 // DO NOT EDIT! This is a generated sample ("LongRunningPromise",  "wap")
 'use strict';
 
+// sample-metadata:
+//   title: GetBigBook: 'War and Peace'
+//   description: Testing calling forms
+//   usage: node samples/v1/get_big_book_long_running_promise_wap.js [--shelf "Novel\\\"\`\b\t\n\r"]
+
 // [START hopper]
-// [START hopper_core]
 
 const library = require('@google-cloud/library').v1;
 
 /** Testing calling forms */
 function sampleGetBigBook(shelf) {
   const client = new library.LibraryServiceClient();
-  // const shelf = 'Novel';
+  // const shelf = 'Novel\\"`\b\t\n\r';
   const formattedName = client.bookPath(shelf, 'War and Peace');
 
   // Handle the operation using the promise pattern.
@@ -616,14 +582,12 @@ function sampleGetBigBook(shelf) {
     });
 }
 
-
-// [END hopper_core]
 // [END hopper]
 // tslint:disable-next-line:no-any
 
 const argv = require(`yargs`)
   .option('shelf', {
-    default: 'Novel',
+    default: 'Novel\\"`\b\t\n\r',
     string: true
   })
   .argv;
@@ -633,8 +597,12 @@ sampleGetBigBook(argv.shelf);
 // DO NOT EDIT! This is a generated sample ("LongRunningPromise",  "wap2")
 'use strict';
 
+// sample-metadata:
+//   title: GetBigBook: 'War and Peace'
+//   description: Testing resource name overlap
+//   usage: node samples/v1/get_big_book_long_running_promise_wap2.js [--shelf Novel] [--big_book_name "War and Peace"]
+
 // [START hopper]
-// [START hopper_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -671,8 +639,6 @@ function sampleGetBigBook(shelf, bigBookName) {
     });
 }
 
-
-// [END hopper_core]
 // [END hopper]
 // tslint:disable-next-line:no-any
 
@@ -692,8 +658,12 @@ sampleGetBigBook(argv.shelf, argv.big_book_name);
 // DO NOT EDIT! This is a generated sample ("LongRunningEventEmitter",  "empty_response_type_with_response_handling")
 'use strict';
 
+// sample-metadata:
+//   title: Test response handling for methods that return empty
+//   description: Test response handling for methods that return empty
+//   usage: node samples/v1/get_big_nothing_long_running_event_emitter_empty_response_type_with_response_handling.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -730,8 +700,6 @@ function sampleGetBigNothing() {
     });
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -740,8 +708,12 @@ sampleGetBigNothing();
 // DO NOT EDIT! This is a generated sample ("LongRunningEventEmitter",  "empty_response_type_without_response_handling")
 'use strict';
 
+// sample-metadata:
+//   title: Test default response handling is turned off for methods that return empty
+//   description: Test default response handling is turned off for methods that return empty
+//   usage: node samples/v1/get_big_nothing_long_running_event_emitter_empty_response_type_without_response_handling.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -776,8 +748,6 @@ function sampleGetBigNothing() {
     });
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -786,8 +756,12 @@ sampleGetBigNothing();
 // DO NOT EDIT! This is a generated sample ("LongRunningPromiseAwait",  "empty_response_type_with_response_handling")
 'use strict';
 
+// sample-metadata:
+//   title: Test response handling for methods that return empty
+//   description: Test response handling for methods that return empty
+//   usage: node samples/v1/get_big_nothing_long_running_promise_await_empty_response_type_with_response_handling.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -806,8 +780,6 @@ async function sampleGetBigNothing() {
   console.log(`Got nothing.`);
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -816,8 +788,12 @@ sampleGetBigNothing().catch(console.error);
 // DO NOT EDIT! This is a generated sample ("LongRunningPromiseAwait",  "empty_response_type_without_response_handling")
 'use strict';
 
+// sample-metadata:
+//   title: Test default response handling is turned off for methods that return empty
+//   description: Test default response handling is turned off for methods that return empty
+//   usage: node samples/v1/get_big_nothing_long_running_promise_await_empty_response_type_without_response_handling.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -834,8 +810,6 @@ async function sampleGetBigNothing() {
 
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -844,8 +818,12 @@ sampleGetBigNothing().catch(console.error);
 // DO NOT EDIT! This is a generated sample ("LongRunningPromise",  "empty_response_type_with_response_handling")
 'use strict';
 
+// sample-metadata:
+//   title: Test response handling for methods that return empty
+//   description: Test response handling for methods that return empty
+//   usage: node samples/v1/get_big_nothing_long_running_promise_empty_response_type_with_response_handling.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -875,8 +853,6 @@ function sampleGetBigNothing() {
     });
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -885,8 +861,12 @@ sampleGetBigNothing();
 // DO NOT EDIT! This is a generated sample ("LongRunningPromise",  "empty_response_type_without_response_handling")
 'use strict';
 
+// sample-metadata:
+//   title: Test default response handling is turned off for methods that return empty
+//   description: Test default response handling is turned off for methods that return empty
+//   usage: node samples/v1/get_big_nothing_long_running_promise_empty_response_type_without_response_handling.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -914,8 +894,6 @@ function sampleGetBigNothing() {
     });
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -924,8 +902,13 @@ sampleGetBigNothing();
 // DO NOT EDIT! This is a generated sample ("Request",  "test_on_success_map")
 'use strict';
 
+// sample-metadata:
+//   title: test maps in response handling
+//   description: When there is a very long description for a sample file we can split
+//     the description into multiple lines and the samples will be just fine
+//   usage: node samples/v1/get_book_request_test_on_success_map.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -946,8 +929,6 @@ function sampleGetBook() {
     });
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -956,8 +937,12 @@ sampleGetBook();
 // DO NOT EDIT! This is a generated sample ("RequestStreamingServer",  "prog")
 'use strict';
 
+// sample-metadata:
+//   title: Programming Books
+//   description: Testing calling forms
+//   usage: node samples/v1/lovelace.js
+
 // [START lovelace]
-// [START lovelace_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -970,8 +955,6 @@ function sampleStreamBooks() {
     });
 }
 
-
-// [END lovelace_core]
 // [END lovelace]
 // tslint:disable-next-line:no-any
 
@@ -980,8 +963,12 @@ sampleStreamBooks();
 // DO NOT EDIT! This is a generated sample ("RequestStreamingClient",  "prog")
 'use strict';
 
+// sample-metadata:
+//   title: Programming Books
+//   description: Testing calling forms
+//   usage: node samples/v1/monolog_about_book_request_streaming_client_prog.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -1003,8 +990,6 @@ function sampleMonologAboutBook() {
   stream.write(request);
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -1013,8 +998,12 @@ sampleMonologAboutBook();
 // DO NOT EDIT! This is a generated sample ("Request",  "pi_version")
 'use strict';
 
+// sample-metadata:
+//   title: Pi version
+//   description: Testing <@calling forms>
+//   usage: node samples/v1/publish_series_request_pi_version.js [--shelf_name Math] [--edition 123]
+
 // [START canonical]
-// [START canonical_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -1071,8 +1060,6 @@ function samplePublishSeries(shelfName, edition) {
     });
 }
 
-
-// [END canonical_core]
 // [END canonical]
 // tslint:disable-next-line:no-any
 
@@ -1092,8 +1079,12 @@ samplePublishSeries(argv.shelf_name, argv.edition);
 // DO NOT EDIT! This is a generated sample ("Request",  "second_edition")
 'use strict';
 
+// sample-metadata:
+//   title: Second edition
+//   description: Testing calling forms
+//   usage: node samples/v1/publish_series_request_second_edition.js
+
 // [START canonical]
-// [START canonical_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -1120,8 +1111,6 @@ function samplePublishSeries() {
     });
 }
 
-
-// [END canonical_core]
 // [END canonical]
 // tslint:disable-next-line:no-any
 
@@ -1130,8 +1119,12 @@ samplePublishSeries();
 // DO NOT EDIT! This is a generated sample ("Request",  "test_request_object_field_comments")
 'use strict';
 
+// sample-metadata:
+//   title: request object field comments
+//   description: Test request object field comments
+//   usage: node samples/v1/publish_series_request_test_request_object_field_comments.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -1184,8 +1177,6 @@ function samplePublishSeries() {
     });
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -1194,8 +1185,12 @@ samplePublishSeries();
 // DO NOT EDIT! This is a generated sample ("Request",  "test_write_to_file")
 'use strict';
 
+// sample-metadata:
+//   title: test writing fields to files
+//   description: Testing write fields to files.
+//   usage: node samples/v1/publish_series_request_test_write_to_file.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -1226,8 +1221,6 @@ function samplePublishSeries() {
     });
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -1236,8 +1229,12 @@ samplePublishSeries();
 // DO NOT EDIT! This is a generated sample ("Request",  "test_default_calling_form_unary")
 'use strict';
 
+// sample-metadata:
+//   title: test_default_calling_form_unary
+//   description: Test default calling forms for unary methods.
+//   usage: node samples/v1/sample_get_shelf.js
+
 // [START sample_get_shelf]
-// [START sample_get_shelf_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -1260,8 +1257,6 @@ function sampleGetShelf() {
     });
 }
 
-
-// [END sample_get_shelf_core]
 // [END sample_get_shelf]
 // tslint:disable-next-line:no-any
 
@@ -1270,8 +1265,12 @@ sampleGetShelf();
 // DO NOT EDIT! This is a generated sample ("RequestStreamingServer",  "empty")
 'use strict';
 
+// sample-metadata:
+//   title: Server streaming
+//   description: Testing calling forms
+//   usage: node samples/v1/stream_shelves_request_streaming_server_empty.js
+
 // [START sample]
-// [START sample_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -1284,8 +1283,6 @@ function sampleStreamShelves() {
     });
 }
 
-
-// [END sample_core]
 // [END sample]
 // tslint:disable-next-line:no-any
 
@@ -1294,8 +1291,12 @@ sampleStreamShelves();
 // DO NOT EDIT! This is a generated sample ("RequestAsyncPagedAll",  "test_default_calling_form_paging")
 'use strict';
 
+// sample-metadata:
+//   title: test default calling form for paging
+//   description: Test default calling form for paging methods.
+//   usage: node samples/v1/test_default_calling_form_for_paging.js
+
 // [START test_default_calling_form_for_paging]
-// [START test_default_calling_form_for_paging_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -1315,25 +1316,226 @@ function sampleListShelves() {
     });
 }
 
-
-// [END test_default_calling_form_for_paging_core]
 // [END test_default_calling_form_for_paging]
 // tslint:disable-next-line:no-any
 
 sampleListShelves();
+============== file: samples/v1/test_float_and_int64.js ==============
+// DO NOT EDIT! This is a generated sample ("Request",  "test_float_and_int64")
+'use strict';
+
+// sample-metadata:
+//   title:
+//   usage: node samples/v1/test_float_and_int64.js [--param_float 1.2345] [--param_long 67890]
+
+// [START test_float_and_int64]
+
+const library = require('@google-cloud/library').v1;
+
+function sampleTestOptionalRequiredFlatteningParams(paramFloat, paramLong) {
+  const client = new library.LibraryServiceClient();
+  // const paramFloat = 1.2345;
+  // const paramLong = 67890;
+  const requiredSingularInt32 = 0;
+  const requiredSingularDouble = 0.0;
+  const requiredSingularBool = false;
+  const requiredSingularEnum = 'ZERO';
+  const requiredSingularString = '';
+  const requiredSingularBytes = Buffer.from('');
+  const requiredSingularMessage = {};
+  const formattedRequiredSingularResourceName = client.bookPath('[SHELF_ID]', '[BOOK_ID]');
+  const formattedRequiredSingularResourceNameOneof = client.bookPath('[SHELF_ID]', '[BOOK_ID]');
+  const formattedRequiredSingularResourceNameCommon = client.projectPath('[PROJECT]');
+  const requiredSingularFixed32 = 0;
+  const requiredSingularFixed64 = 0;
+  const requiredRepeatedInt32 = [];
+  const requiredRepeatedInt64 = [];
+  const requiredRepeatedFloat = [];
+  const requiredRepeatedDouble = [];
+  const requiredRepeatedBool = [];
+  const requiredRepeatedEnum = [];
+  const requiredRepeatedString = [];
+  const requiredRepeatedBytes = [];
+  const requiredRepeatedMessage = [];
+  const formattedRequiredRepeatedResourceName = [];
+  const formattedRequiredRepeatedResourceNameOneof = [];
+  const formattedRequiredRepeatedResourceNameCommon = [];
+  const requiredRepeatedFixed32 = [];
+  const requiredRepeatedFixed64 = [];
+  const requiredMap = {};
+  const request = {
+    requiredSingularInt32: requiredSingularInt32,
+    requiredSingularInt64: paramLong,
+    requiredSingularFloat: paramFloat,
+    requiredSingularDouble: requiredSingularDouble,
+    requiredSingularBool: requiredSingularBool,
+    requiredSingularEnum: requiredSingularEnum,
+    requiredSingularString: requiredSingularString,
+    requiredSingularBytes: requiredSingularBytes,
+    requiredSingularMessage: requiredSingularMessage,
+    requiredSingularResourceName: formattedRequiredSingularResourceName,
+    requiredSingularResourceNameOneof: formattedRequiredSingularResourceNameOneof,
+    requiredSingularResourceNameCommon: formattedRequiredSingularResourceNameCommon,
+    requiredSingularFixed32: requiredSingularFixed32,
+    requiredSingularFixed64: requiredSingularFixed64,
+    requiredRepeatedInt32: requiredRepeatedInt32,
+    requiredRepeatedInt64: requiredRepeatedInt64,
+    requiredRepeatedFloat: requiredRepeatedFloat,
+    requiredRepeatedDouble: requiredRepeatedDouble,
+    requiredRepeatedBool: requiredRepeatedBool,
+    requiredRepeatedEnum: requiredRepeatedEnum,
+    requiredRepeatedString: requiredRepeatedString,
+    requiredRepeatedBytes: requiredRepeatedBytes,
+    requiredRepeatedMessage: requiredRepeatedMessage,
+    requiredRepeatedResourceName: formattedRequiredRepeatedResourceName,
+    requiredRepeatedResourceNameOneof: formattedRequiredRepeatedResourceNameOneof,
+    requiredRepeatedResourceNameCommon: formattedRequiredRepeatedResourceNameCommon,
+    requiredRepeatedFixed32: requiredRepeatedFixed32,
+    requiredRepeatedFixed64: requiredRepeatedFixed64,
+    requiredMap: requiredMap,
+  };
+  client.testOptionalRequiredFlatteningParams(request)
+    .then(responses => {
+      const response = responses[0];
+      console.log(response);
+    })
+    .catch(err => {
+      console.error(err);
+    });
+}
+
+// [END test_float_and_int64]
+// tslint:disable-next-line:no-any
+
+const argv = require(`yargs`)
+  .option('param_float', {
+    default: 1.2345,
+    number: true
+  })
+  .option('param_long', {
+    default: 67890,
+    number: true
+  })
+  .argv;
+
+sampleTestOptionalRequiredFlatteningParams(argv.param_float, argv.param_long);
+============== file: samples/v1/test_resource_name_oneof.js ==============
+// DO NOT EDIT! This is a generated sample ("Request",  "test_resource_name_oneof")
+'use strict';
+
+// sample-metadata:
+//   title:
+//   usage: node samples/v1/test_resource_name_oneof.js
+
+// [START test_resource_name_oneof]
+
+const library = require('@google-cloud/library').v1;
+
+function sampleGetBookFromAbsolutelyAnywhere() {
+  const client = new library.LibraryServiceClient();
+  const formattedName = client.archivedBookPath('The archive to search for the book', 'The ID of the book');
+  client.getBookFromAbsolutelyAnywhere({name: formattedName})
+    .then(responses => {
+      const response = responses[0];
+      console.log(`Archived book found.`);
+    })
+    .catch(err => {
+      console.error(err);
+    });
+}
+
+// [END test_resource_name_oneof]
+// tslint:disable-next-line:no-any
+
+sampleGetBookFromAbsolutelyAnywhere();
+============== file: samples/v1/test_resource_name_oneof_2.js ==============
+// DO NOT EDIT! This is a generated sample ("Request",  "test_resource_name_oneof_2")
+'use strict';
+
+// sample-metadata:
+//   title:
+//   usage: node samples/v1/test_resource_name_oneof_2.js
+
+// [START test_resource_name_oneof_2]
+
+const library = require('@google-cloud/library').v1;
+
+function sampleGetBookFromAbsolutelyAnywhere() {
+  const client = new library.LibraryServiceClient();
+  const formattedName = client.bookPath('The Shelf to search for the book', 'The ID of the book');
+  client.getBookFromAbsolutelyAnywhere({name: formattedName})
+    .then(responses => {
+      const response = responses[0];
+      console.log(`Book on shelf found.`);
+    })
+    .catch(err => {
+      console.error(err);
+    });
+}
+
+// [END test_resource_name_oneof_2]
+// tslint:disable-next-line:no-any
+
+sampleGetBookFromAbsolutelyAnywhere();
+============== file: samples/v1/test_setting_up_empty_objects_in_request.js ==============
+// DO NOT EDIT! This is a generated sample ("Request",  "test_setting_up_empty_objects_in_request")
+'use strict';
+
+// sample-metadata:
+//   title: test_setting_up_empty_objects_in_request
+//   description: Test setting up empty objects in the request objects.
+//   usage: node samples/v1/test_setting_up_empty_objects_in_request.js
+
+// [START test_setting_up_empty_objects_in_request]
+
+const library = require('@google-cloud/library').v1;
+
+/** Test setting up empty objects in the request objects. */
+function sampleGetShelf() {
+  const client = new library.LibraryServiceClient();
+  const formattedName = client.shelfPath('my-shelf');
+  const options = '';
+
+  // we can set up this empty nested object now
+  const message = {};
+  const stringBuilder = {};
+  const request = {
+    name: formattedName,
+    options: options,
+    message: message,
+    stringBuilder: stringBuilder,
+  };
+  client.getShelf(request)
+    .then(responses => {
+      const response = responses[0];
+      console.log(`Shelf found.`);
+    })
+    .catch(err => {
+      console.error(err);
+    });
+}
+
+// [END test_setting_up_empty_objects_in_request]
+// tslint:disable-next-line:no-any
+
+sampleGetShelf();
 ============== file: samples/v1/this_tag_should_be_the_name_of_the_file.js ==============
 // DO NOT EDIT! This is a generated sample ("LongRunningPromiseAwait",  "wap")
 'use strict';
 
+// sample-metadata:
+//   title: GetBigBook: 'War and Peace'
+//   description: Testing calling forms
+//   usage: node samples/v1/this_tag_should_be_the_name_of_the_file.js [--shelf "Novel\\\"\`\b\t\n\r"]
+
 // [START this_tag_should_be_the_name_of_the_file]
-// [START this_tag_should_be_the_name_of_the_file_core]
 
 const library = require('@google-cloud/library').v1;
 
 /** Testing calling forms */
 async function sampleGetBigBook(shelf) {
   const client = new library.LibraryServiceClient();
-  // const shelf = 'Novel';
+  // const shelf = 'Novel\\"`\b\t\n\r';
   const formattedName = client.bookPath(shelf, 'War and Peace');
 
   // Create a job whose results you can either wait for now, or get later
@@ -1361,14 +1563,12 @@ async function sampleGetBigBook(shelf) {
   console.log(`author: ${response.author}`);
 }
 
-
-// [END this_tag_should_be_the_name_of_the_file_core]
 // [END this_tag_should_be_the_name_of_the_file]
 // tslint:disable-next-line:no-any
 
 const argv = require(`yargs`)
   .option('shelf', {
-    default: 'Novel',
+    default: 'Novel\\"`\b\t\n\r',
     string: true
   })
   .argv;
@@ -1378,8 +1578,12 @@ sampleGetBigBook(argv.shelf).catch(console.error);
 // DO NOT EDIT! This is a generated sample ("RequestStreamingBidi",  "prog")
 'use strict';
 
+// sample-metadata:
+//   title: Programming Books
+//   description: Testing calling forms
+//   usage: node samples/v1/turing_prog_request_streaming_bidi.js [--image_file_name "image_file.jpg"] [--stage DRAFT]
+
 // [START turing_prog_request_streaming_bidi]
-// [START turing_prog_request_streaming_bidi_core]
 
 const library = require('@google-cloud/library').v1;
 
@@ -1408,8 +1612,6 @@ function sampleDiscussBook(imageFileName, stage) {
   stream.write(request);
 }
 
-
-// [END turing_prog_request_streaming_bidi_core]
 // [END turing_prog_request_streaming_bidi]
 // tslint:disable-next-line:no-any
 
@@ -2188,7 +2390,7 @@ const PublishSeriesRequest = {
 };
 
 /**
- * @property {string} seriesBytes
+ * @property {Buffer} seriesBytes
  *
  * @property {string} seriesString
  *
@@ -2410,7 +2612,7 @@ const AddCommentsRequest = {
  * @property {string} userName
  *   won't be filled in by the sample generator
  *
- * @property {string} comment
+ * @property {Buffer} comment
  *   should be filled in by the sample generator
  *
  * @property {number} stage
@@ -2523,7 +2725,7 @@ const UpdateBookIndexRequest = {
  *
  *   This object should have the same structure as [Comment]{@link google.example.library.v1.Comment}
  *
- * @property {string} image
+ * @property {Buffer} image
  *
  * @typedef DiscussBookRequest
  * @memberof google.example.library.v1
@@ -2597,7 +2799,7 @@ const GetBigBookMetadata = {
  *
  * @property {string} requiredSingularString
  *
- * @property {string} requiredSingularBytes
+ * @property {Buffer} requiredSingularBytes
  *
  * @property {Object} requiredSingularMessage
  *   This object should have the same structure as [InnerMessage]{@link google.example.library.v1.InnerMessage}
@@ -2627,7 +2829,7 @@ const GetBigBookMetadata = {
  *
  * @property {string[]} requiredRepeatedString
  *
- * @property {string[]} requiredRepeatedBytes
+ * @property {Buffer[]} requiredRepeatedBytes
  *
  * @property {Object[]} requiredRepeatedMessage
  *   This object should have the same structure as [InnerMessage]{@link google.example.library.v1.InnerMessage}
@@ -2659,7 +2861,7 @@ const GetBigBookMetadata = {
  *
  * @property {string} optionalSingularString
  *
- * @property {string} optionalSingularBytes
+ * @property {Buffer} optionalSingularBytes
  *
  * @property {Object} optionalSingularMessage
  *   This object should have the same structure as [InnerMessage]{@link google.example.library.v1.InnerMessage}
@@ -2689,7 +2891,7 @@ const GetBigBookMetadata = {
  *
  * @property {string[]} optionalRepeatedString
  *
- * @property {string[]} optionalRepeatedBytes
+ * @property {Buffer[]} optionalRepeatedBytes
  *
  * @property {Object[]} optionalRepeatedMessage
  *   This object should have the same structure as [InnerMessage]{@link google.example.library.v1.InnerMessage}
@@ -3030,7 +3232,7 @@ const Operation = {
  *   Schemes other than `http`, `https` (or the empty scheme) might be
  *   used with implementation specific semantics.
  *
- * @property {string} value
+ * @property {Buffer} value
  *   Must be a valid serialized protocol buffer of the above specified type.
  *
  * @typedef Any
@@ -3784,7 +3986,7 @@ const StringValue = {
  *
  * The JSON representation for `BytesValue` is JSON string.
  *
- * @property {string} value
+ * @property {Buffer} value
  *   The bytes value.
  *
  * @typedef BytesValue
@@ -4060,14 +4262,20 @@ class LibraryServiceClient {
    *     API remote host.
    */
   constructor(opts) {
+    opts = opts || {};
     this._descriptors = {};
+
+    const servicePath =
+      opts.servicePath ||
+      opts.apiEndpoint ||
+      this.constructor.servicePath;
 
     // Ensure that options include the service address and port.
     opts = Object.assign(
       {
         clientConfig: {},
         port: this.constructor.port,
-        servicePath: this.constructor.servicePath,
+        servicePath,
       },
       opts
     );
@@ -4325,6 +4533,14 @@ class LibraryServiceClient {
    * The DNS address for this API service.
    */
   static get servicePath() {
+    return 'library-example.googleapis.com';
+  }
+
+  /**
+   * The DNS address for this API service - same as servicePath(),
+   * exists for compatibility reasons.
+   */
+  static get apiEndpoint() {
     return 'library-example.googleapis.com';
   }
 
@@ -5416,7 +5632,7 @@ class LibraryServiceClient {
    * });
    *
    * const formattedName = client.bookPath('[SHELF_ID]', '[BOOK_ID]');
-   * const comment = '';
+   * const comment = Buffer.from('');
    * const stage = 'UNSET';
    * const alignment = 'CHAR';
    * const commentsElement = {
@@ -6289,7 +6505,7 @@ class LibraryServiceClient {
    * @param {number} request.requiredSingularEnum
    *   The number should be among the values of [InnerEnum]{@link google.example.library.v1.InnerEnum}
    * @param {string} request.requiredSingularString
-   * @param {string} request.requiredSingularBytes
+   * @param {Buffer} request.requiredSingularBytes
    * @param {Object} request.requiredSingularMessage
    *   This object should have the same structure as [InnerMessage]{@link google.example.library.v1.InnerMessage}
    * @param {string} request.requiredSingularResourceName
@@ -6305,7 +6521,7 @@ class LibraryServiceClient {
    * @param {number[]} request.requiredRepeatedEnum
    *   The number should be among the values of [InnerEnum]{@link google.example.library.v1.InnerEnum}
    * @param {string[]} request.requiredRepeatedString
-   * @param {string[]} request.requiredRepeatedBytes
+   * @param {Buffer[]} request.requiredRepeatedBytes
    * @param {Object[]} request.requiredRepeatedMessage
    *   This object should have the same structure as [InnerMessage]{@link google.example.library.v1.InnerMessage}
    * @param {string[]} request.requiredRepeatedResourceName
@@ -6322,7 +6538,7 @@ class LibraryServiceClient {
    * @param {number} [request.optionalSingularEnum]
    *   The number should be among the values of [InnerEnum]{@link google.example.library.v1.InnerEnum}
    * @param {string} [request.optionalSingularString]
-   * @param {string} [request.optionalSingularBytes]
+   * @param {Buffer} [request.optionalSingularBytes]
    * @param {Object} [request.optionalSingularMessage]
    *   This object should have the same structure as [InnerMessage]{@link google.example.library.v1.InnerMessage}
    * @param {string} [request.optionalSingularResourceName]
@@ -6338,7 +6554,7 @@ class LibraryServiceClient {
    * @param {number[]} [request.optionalRepeatedEnum]
    *   The number should be among the values of [InnerEnum]{@link google.example.library.v1.InnerEnum}
    * @param {string[]} [request.optionalRepeatedString]
-   * @param {string[]} [request.optionalRepeatedBytes]
+   * @param {Buffer[]} [request.optionalRepeatedBytes]
    * @param {Object[]} [request.optionalRepeatedMessage]
    *   This object should have the same structure as [InnerMessage]{@link google.example.library.v1.InnerMessage}
    * @param {string[]} [request.optionalRepeatedResourceName]
@@ -6437,7 +6653,7 @@ class LibraryServiceClient {
    * const requiredSingularBool = false;
    * const requiredSingularEnum = 'ZERO';
    * const requiredSingularString = '';
-   * const requiredSingularBytes = '';
+   * const requiredSingularBytes = Buffer.from('');
    * const requiredSingularMessage = {};
    * const formattedRequiredSingularResourceName = client.bookPath('[SHELF_ID]', '[BOOK_ID]');
    * const formattedRequiredSingularResourceNameOneof = client.bookPath('[SHELF_ID]', '[BOOK_ID]');
@@ -6937,14 +7153,20 @@ class MyProtoClient {
    *     API remote host.
    */
   constructor(opts) {
+    opts = opts || {};
     this._descriptors = {};
+
+    const servicePath =
+      opts.servicePath ||
+      opts.apiEndpoint ||
+      this.constructor.servicePath;
 
     // Ensure that options include the service address and port.
     opts = Object.assign(
       {
         clientConfig: {},
         port: this.constructor.port,
-        servicePath: this.constructor.servicePath,
+        servicePath,
       },
       opts
     );
@@ -7033,6 +7255,14 @@ class MyProtoClient {
    * The DNS address for this API service.
    */
   static get servicePath() {
+    return 'library-example.googleapis.com';
+  }
+
+  /**
+   * The DNS address for this API service - same as servicePath(),
+   * exists for compatibility reasons.
+   */
+  static get apiEndpoint() {
     return 'library-example.googleapis.com';
   }
 
@@ -7238,6 +7468,27 @@ const error = new Error();
 error.code = FAKE_STATUS_CODE;
 
 describe('LibraryServiceClient', () => {
+  it('has servicePath', () => {
+    const servicePath = libraryModule.v1.LibraryServiceClient.servicePath;
+    assert(servicePath);
+  });
+
+  it('has apiEndpoint', () => {
+    const apiEndpoint = libraryModule.v1.LibraryServiceClient.apiEndpoint;
+    assert(apiEndpoint);
+  });
+
+  it('has port', () => {
+    const port = libraryModule.v1.LibraryServiceClient.port;
+    assert(port);
+    assert(typeof port === 'number');
+  });
+
+  it('should create a client with no options', () => {
+    const client = new libraryModule.v1.LibraryServiceClient();
+    assert(client);
+  });
+
   describe('createShelf', () => {
     it('invokes createShelf without error', done => {
       const client = new libraryModule.v1.LibraryServiceClient({
@@ -9096,6 +9347,27 @@ describe('LibraryServiceClient', () => {
 
 });
 describe('MyProtoClient', () => {
+  it('has servicePath', () => {
+    const servicePath = libraryModule.v1.MyProtoClient.servicePath;
+    assert(servicePath);
+  });
+
+  it('has apiEndpoint', () => {
+    const apiEndpoint = libraryModule.v1.MyProtoClient.apiEndpoint;
+    assert(apiEndpoint);
+  });
+
+  it('has port', () => {
+    const port = libraryModule.v1.MyProtoClient.port;
+    assert(port);
+    assert(typeof port === 'number');
+  });
+
+  it('should create a client with no options', () => {
+    const client = new libraryModule.v1.MyProtoClient();
+    assert(client);
+  });
+
   describe('myMethod', () => {
     it('invokes myMethod without error', done => {
       const client = new libraryModule.v1.MyProtoClient({

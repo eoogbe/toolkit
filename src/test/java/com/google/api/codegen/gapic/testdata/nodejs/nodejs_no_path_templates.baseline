@@ -1,35 +1,6 @@
 ============== file: README.md ==============
-# Node.js Client for Google Fake API ([Production/Stable](https://github.com/GoogleCloudPlatform/google-cloud-node#versioning))
-
-[Google Fake API][Product Documentation]:
-Tests no path templates
-- [Client Library Documentation][]
-- [Product Documentation][]
-
-## Quick Start
-In order to use this library, you first need to go through the following
-steps:
-
-1. [Select or create a Cloud Platform project.](https://console.cloud.google.com/project)
-2. [Enable billing for your project.](https://cloud.google.com/billing/docs/how-to/modify-project#enable_billing_for_a_project)
-3. [Enable the Google Fake API.](https://console.cloud.google.com/apis/library/library.googleapis.com)
-4. [Setup Authentication.](https://googlecloudplatform.github.io/google-cloud-node/#/docs/google-cloud/master/guides/authentication)
-
-### Installation
-```
-$ npm install --save example
-```
-
-### Next Steps
-- Read the [Client Library Documentation][] for Google Fake API
-  to see other available methods on the client.
-- Read the [Google Fake API Product documentation][Product Documentation]
-  to learn more about the product and see How-to Guides.
-- View this [repository's main README](https://github.com/GoogleCloudPlatform/google-cloud-node/blob/master/README.md)
-  to see the full list of Cloud APIs that we cover.
-
-[Client Library Documentation]: https://googlecloudplatform.github.io/google-cloud-node/#/docs/library
-[Product Documentation]: https://cloud.google.com/library
+# Node.js Client for Google Fake API
+This is a generated README.md placeholder. Put your own documentation here.
 ============== file: package.json ==============
 {
   "repository": "GoogleCloudPlatform/google-cloud-node",
@@ -53,20 +24,19 @@ $ npm install --save example
     "google cloud platform",
     "google cloud",
     "cloud",
-    "google library",
-    "library",
+    "google example",
+    "example",
     "Google Fake API"
   ],
   "dependencies": {
-    "google-gax": "^1.1.0",
-    "google-some-other-package-v1": "^0.2.1"
+    "google-some-other-package-v1": "^0.2.1",
+    "google-gax": "^1.1.0"
   },
   "devDependencies": {
     "mocha": "^5.2.0",
     "through2": "^2.0.3"
   },
   "scripts": {
-    "publish-module": "node ../../scripts/publish.js library",
     "smoke-test": "mocha smoke-test/*.js --timeout 5000",
     "test": "mocha test/*.js"
   },
@@ -213,14 +183,20 @@ class NoTemplatesApiServiceClient {
    *     API remote host.
    */
   constructor(opts) {
+    opts = opts || {};
     this._descriptors = {};
+
+    const servicePath =
+      opts.servicePath ||
+      opts.apiEndpoint ||
+      this.constructor.servicePath;
 
     // Ensure that options include the service address and port.
     opts = Object.assign(
       {
         clientConfig: {},
         port: this.constructor.port,
-        servicePath: this.constructor.servicePath,
+        servicePath,
       },
       opts
     );
@@ -300,6 +276,14 @@ class NoTemplatesApiServiceClient {
    * The DNS address for this API service.
    */
   static get servicePath() {
+    return 'no-path-templates.googleapis.com';
+  }
+
+  /**
+   * The DNS address for this API service - same as servicePath(),
+   * exists for compatibility reasons.
+   */
+  static get apiEndpoint() {
     return 'no-path-templates.googleapis.com';
   }
 
@@ -438,6 +422,27 @@ const error = new Error();
 error.code = FAKE_STATUS_CODE;
 
 describe('NoTemplatesApiServiceClient', () => {
+  it('has servicePath', () => {
+    const servicePath = exampleModule.NoTemplatesApiServiceClient.servicePath;
+    assert(servicePath);
+  });
+
+  it('has apiEndpoint', () => {
+    const apiEndpoint = exampleModule.NoTemplatesApiServiceClient.apiEndpoint;
+    assert(apiEndpoint);
+  });
+
+  it('has port', () => {
+    const port = exampleModule.NoTemplatesApiServiceClient.port;
+    assert(port);
+    assert(typeof port === 'number');
+  });
+
+  it('should create a client with no options', () => {
+    const client = new exampleModule.NoTemplatesApiServiceClient();
+    assert(client);
+  });
+
   describe('increment', () => {
     it('invokes increment without error', done => {
       const client = new exampleModule.NoTemplatesApiServiceClient({
@@ -495,3 +500,4 @@ function mockSimpleGrpcMethod(expectedRequest, response, error) {
     }
   };
 }
+

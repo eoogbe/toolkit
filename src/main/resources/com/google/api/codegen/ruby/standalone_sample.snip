@@ -1,3 +1,4 @@
+@extends "metadatagen/samplegen.snip"
 @extends "ruby/common.snip"
 @extends "ruby/response.snip"
 
@@ -8,9 +9,17 @@
 
       @# DO NOT EDIT! This is a generated sample ("{@sample.callingForm}",  "{@sample.valueSet.id}")
       
+      @# sample-metadata
+      @#   title: {@sample.title}
+      @if sample.descriptionLine
+        {@descriptionLines("#", sample.descriptionLine, sample.additionalDescriptionLines)}
+      @end
+      @#   bundle exec ruby {@sampleFile.outputPath} {@commandlineArgumentList(sample.sampleInitCode.argDefaultParams)}
+
       require "{@apiMethod.initCode.topLevelIndexFileImportName}"
 
       {@standaloneSample(apiMethod, sample)}
+
     @end
   @end
 @end
@@ -22,11 +31,10 @@
     {@processSampleFunctionDoc(sample.sampleFunctionDoc)}
   @end
   @if sample.sampleInitCode.argDefaultParams.size
-    def {@sample.sampleFunctionName}({@formalArgs(sample.sampleInitCode.argDefaultParams)})
+    def {@sample.sampleFunctionName} {@formalArgs(sample.sampleInitCode.argDefaultParams)}
   @else
     def {@sample.sampleFunctionName}
   @end
-    @# [START {@sample.regionTag}_core]
     @# Instantiate a client
     @if apiMethod.hasApiVersion
       {@apiMethod.apiVariableName} = {@apiMethod.topLevelAliasedApiClassName}.new version: :{@apiMethod.apiVersion.toLowerCase}
@@ -57,8 +65,6 @@
     @default
       $unhandledCallingForm: {@sample.callingForm} in sample "{@apiMethod.getClass.getSimpleName}"$
     @end
-
-    @# [END {@sample.regionTag}_core]
   end
   @# [END {@sample.regionTag}]
   
@@ -66,7 +72,7 @@
 
   require "optparse"
 
-  if $0 == __FILE__
+  if $PROGRAM_NAME == __FILE__
     @if sample.sampleInitCode.argDefaultParams
       {@processCliArguments(sample.sampleInitCode.argDefaultParams)}
 
@@ -87,15 +93,15 @@
   @else
     @if doc.mainDocLines.size
       @join line : @doc.mainDocLines
-        {@""} # {@line}
+        @# {@line}
       @end
 
-      {@""} #
+      @#
 
     @end
     @join paramDoc : doc.paramDocLines
       @join line : paramDoc
-        {@""} # {@line}
+        @# {@line}
       @end
     @end
   @end
@@ -110,7 +116,7 @@
 
   raise operation.results.message if operation.error?
 
-  results = operation.response.results
+  response = operation.response
   @if sample.outputs
 
     {@processOutputViews(sample.outputs)}

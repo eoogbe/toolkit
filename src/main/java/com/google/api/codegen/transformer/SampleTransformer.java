@@ -240,7 +240,7 @@ public abstract class SampleTransformer {
     ImportSectionView sampleImportSectionView =
         sampleImportTransformer()
             .generateImportSection(
-                methodContext,
+                methodContext.cloneWithEmptyTypeTable(),
                 form,
                 outputContext,
                 methodContext.getTypeTable(),
@@ -261,6 +261,17 @@ public abstract class SampleTransformer {
                     .build())
             .build();
 
+    ImmutableList<String> metadataDescription =
+        ImmutableList.<String>builder()
+            .addAll(methodContext.getNamer().getWrappedDocLines(valueSet.getDescription(), false))
+            .build();
+
+    String descriptionLine = metadataDescription.isEmpty() ? "" : metadataDescription.get(0);
+    ImmutableList<String> additionalDescriptionLines =
+        metadataDescription.isEmpty()
+            ? ImmutableList.of()
+            : metadataDescription.subList(1, metadataDescription.size());
+
     return MethodSampleView.newBuilder()
         .callingForm(form)
         .valueSet(SampleValueSetView.of(valueSet))
@@ -276,6 +287,9 @@ public abstract class SampleTransformer {
         .sampleFunctionName(
             methodContext.getNamer().getSampleFunctionName(methodContext.getMethodModel()))
         .sampleFunctionDoc(sampleFunctionDocView)
+        .title(config.valueSet().getTitle())
+        .descriptionLine(descriptionLine)
+        .additionalDescriptionLines(additionalDescriptionLines)
         .build();
   }
 

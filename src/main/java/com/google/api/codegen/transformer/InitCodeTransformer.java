@@ -33,6 +33,7 @@ import com.google.api.codegen.metacode.InitCodeLineType;
 import com.google.api.codegen.metacode.InitCodeNode;
 import com.google.api.codegen.metacode.InitValue;
 import com.google.api.codegen.metacode.InitValueConfig;
+import com.google.api.codegen.util.EscaperFactory;
 import com.google.api.codegen.util.Name;
 import com.google.api.codegen.util.Scanner;
 import com.google.api.codegen.util.SymbolTable;
@@ -439,6 +440,7 @@ public class InitCodeTransformer {
               .typeName(simpleInitLine.typeName())
               .isEnum(simpleInitLine.isEnum())
               .cliFlagName(param.getIdentifier().toLowerUnderscore())
+              .cliFlagDefaultValue(getCliFlagDefaultValue(param))
               .description(param.getDescription())
               .build());
 
@@ -668,36 +670,7 @@ public class InitCodeTransformer {
     } else if (initValueConfig.hasFormattingConfig() && !item.getType().isRepeated()) {
       if (context.getFeatureConfig().enableStringFormatFunctions()
           || fieldConfig.getResourceNameConfig() == null) {
-        FormattedInitValueView.Builder formattedInitValue = FormattedInitValueView.newBuilder();
-        formattedInitValue.apiVariableName(
-            context.getNamer().getApiWrapperVariableName(context.getInterfaceConfig()));
-        formattedInitValue.apiWrapperName(
-            context.getNamer().getApiWrapperClassName(context.getInterfaceConfig()));
-        formattedInitValue.fullyQualifiedApiWrapperName(
-            context.getNamer().getFullyQualifiedApiWrapperClassName(context.getInterfaceConfig()));
-        formattedInitValue.formatFunctionName(
-            context
-                .getNamer()
-                .getFormatFunctionName(
-                    context.getInterfaceConfig(), initValueConfig.getSingleResourceNameConfig()));
-
-        PathTemplate template = initValueConfig.getSingleResourceNameConfig().getNameTemplate();
-        String[] encodeArgs = new String[template.vars().size()];
-        Arrays.fill(encodeArgs, FORMAT_SPEC_PLACEHOLDER);
-        // Format spec usually contains reserved character, escaped by path template.
-        // So we first encode using FORMAT_SPEC_PLACEHOLDER, then do straight string replace.
-        formattedInitValue.formatSpec(
-            template
-                .withoutVars()
-                .encode(encodeArgs)
-                .replace(FORMAT_SPEC_PLACEHOLDER, context.getNamer().formatSpec()));
-
-        List<String> varList =
-            Lists.newArrayList(
-                initValueConfig.getSingleResourceNameConfig().getNameTemplate().vars());
-        formattedInitValue.formatArgs(getFormatFunctionArgs(context, varList, initValueConfig));
-
-        initValue = formattedInitValue.build();
+        initValue = createFormattedInitValueView(context, fieldConfig, item, initValueConfig);
       } else {
         initValue = createInitValueView(context, fieldConfig, namer, typeTable, item, true);
       }
@@ -746,6 +719,52 @@ public class InitCodeTransformer {
     surfaceLine.descriptions(context.getNamer().getWrappedDocLines(item.getDescription(), false));
   }
 
+  private InitValueView createFormattedInitValueView(
+      MethodContext context,
+      FieldConfig fieldConfig,
+      InitCodeNode item,
+      InitValueConfig initValueConfig) {
+    FormattedInitValueView.Builder formattedInitValue = FormattedInitValueView.newBuilder();
+    formattedInitValue.apiVariableName(
+        context.getNamer().getApiWrapperVariableName(context.getInterfaceConfig()));
+    formattedInitValue.apiWrapperName(
+        context.getNamer().getApiWrapperClassName(context.getInterfaceConfig()));
+    formattedInitValue.fullyQualifiedApiWrapperName(
+        context.getNamer().getFullyQualifiedApiWrapperClassName(context.getInterfaceConfig()));
+
+    // Use the single resource name config that matches binding values
+    // specified in sample config
+    SingleResourceNameConfig singleResourceNameConfig;
+    if (fieldConfig.getResourceNameType() == ResourceNameType.ONEOF) {
+      ResourceNameOneofConfig oneofConfig =
+          (ResourceNameOneofConfig) fieldConfig.getResourceNameConfig();
+      singleResourceNameConfig = getMatchingSingleResourceNameConfig(item, oneofConfig);
+    } else {
+      singleResourceNameConfig = initValueConfig.getSingleResourceNameConfig();
+    }
+
+    formattedInitValue.formatFunctionName(
+        context
+            .getNamer()
+            .getFormatFunctionName(context.getInterfaceConfig(), singleResourceNameConfig));
+
+    PathTemplate template = singleResourceNameConfig.getNameTemplate();
+    String[] encodeArgs = new String[template.vars().size()];
+    Arrays.fill(encodeArgs, FORMAT_SPEC_PLACEHOLDER);
+    // Format spec usually contains reserved character, escaped by path template.
+    // So we first encode using FORMAT_SPEC_PLACEHOLDER, then do straight string replace.
+    formattedInitValue.formatSpec(
+        template
+            .withoutVars()
+            .encode(encodeArgs)
+            .replace(FORMAT_SPEC_PLACEHOLDER, context.getNamer().formatSpec()));
+
+    List<String> varList = Lists.newArrayList(singleResourceNameConfig.getNameTemplate().vars());
+    formattedInitValue.formatArgs(getFormatFunctionArgs(context, varList, initValueConfig));
+
+    return formattedInitValue.build();
+  }
+
   private InitValueView createInitValueView(
       MethodContext context,
       FieldConfig fieldConfig,
@@ -769,7 +788,7 @@ public class InitCodeTransformer {
       case ONEOF:
         ResourceNameOneofConfig oneofConfig =
             (ResourceNameOneofConfig) fieldConfig.getResourceNameConfig();
-        singleResourceNameConfig = Iterables.get(oneofConfig.getSingleResourceNameConfigs(), 0);
+        singleResourceNameConfig = getMatchingSingleResourceNameConfig(item, oneofConfig);
         FieldConfig singleResourceNameFieldConfig =
             fieldConfig.withResourceNameConfig(singleResourceNameConfig);
         ResourceNameInitValueView initView =
@@ -930,5 +949,48 @@ public class InitCodeTransformer {
       return context.getNamer().getFormattedVariableName(item.getIdentifier());
     }
     return context.getNamer().localVarName(item.getIdentifier());
+  }
+
+  private static SingleResourceNameConfig getMatchingSingleResourceNameConfig(
+      InitCodeNode node, ResourceNameOneofConfig oneofConfig) {
+    List<SingleResourceNameConfig> matchingConfigs =
+        oneofConfig
+            .getSingleResourceNameConfigs()
+            .stream()
+            .filter(
+                c ->
+                    c.getNameTemplate()
+                        .vars()
+                        .equals(node.getInitValueConfig().getResourceNameBindingValues().keySet()))
+            .collect(Collectors.toList());
+    // Return the first one to not break in-code samples and unit tests when
+    // there are no matching resource name binding values
+    if (matchingConfigs.isEmpty()) {
+      return oneofConfig.getSingleResourceNameConfigs().get(0);
+    }
+    return matchingConfigs.get(0);
+  }
+
+  private static String getCliFlagDefaultValue(InitCodeNode item) {
+    checkArgument(
+        !item.getType().isMessage(), "Only enums and primitive types are supported for now.");
+
+    String value = item.getInitValueConfig().getInitialValue().getValue();
+    if (item.getType().isStringType()) {
+      return getEscapedCliFlagDefaultValue(value);
+    }
+    return value;
+  }
+
+  static String getEscapedCliFlagDefaultValue(String unescapedValue) {
+    String escapedValue = EscaperFactory.getCliEscaper().escape(unescapedValue);
+    // It's much harder to accurately determine whether it's necessary to quote the
+    // string. But it is a reasonable compromise to not quote only when the string
+    // is pure alphabets or digits.
+    if (!escapedValue.equals(unescapedValue)
+        || !escapedValue.chars().allMatch(Character::isLetterOrDigit)) {
+      return "\"" + escapedValue + "\"";
+    }
+    return unescapedValue;
   }
 }
