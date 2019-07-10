@@ -291,7 +291,7 @@ gapic_pkg_metadata_config = rule(
             default = [],
         ),
         "artifact_type": attr.string(
-            doc = "The type of GAPIC client artifact to generate."
+            doc = "The type of GAPIC client artifact to generate.",
             mandatory = False,
             default = "GAPIC_CODE",
         ),
