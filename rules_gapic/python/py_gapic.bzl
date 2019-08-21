@@ -12,12 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(
-    "//rules_gapic:gapic.bzl",
-    "gapic_pkg_metadata_config",
-    "gapic_srcjar",
-    "unzipped_srcjar"
-)
+load("//rules_gapic:gapic.bzl", "gapic_srcjar", "unzipped_srcjar")
 
 def _py_gapic_postprocessed_srcjar_impl(ctx):
     gapic_srcjar = ctx.file.gapic_srcjar
@@ -88,30 +83,17 @@ def py_gapic_srcjar(
         src,
         gapic_yaml,
         service_yaml,
-        organization_name,
-        dep_packages = [],
         **kwargs):
     """Generates the Python GAPIC client, performing Python-specific
     postprocessing on the generated client.
     """
     raw_srcjar_name = "%s_raw" % name
-    pkg_metadata_config_name = "%s_package2" % name
-
-    gapic_pkg_metadata_config(
-        name = pkg_metadata_config_name,
-        service_yaml = service_yaml,
-        organization_name = organization_name,
-        dep_packages = dep_packages,
-        artifact_type = "GAPIC_CODE",
-        **kwargs
-    )
 
     gapic_srcjar(
         name = raw_srcjar_name,
         src = src,
         gapic_yaml = gapic_yaml,
         service_yaml = service_yaml,
-        package_yaml2 = ":%s" % pkg_metadata_config_name,
         artifact_type = "GAPIC_CODE",
         language = "python",
         **kwargs
@@ -128,10 +110,7 @@ def py_gapic_library(
         src,
         gapic_yaml,
         service_yaml,
-        organization_name,
-        dep_packages = [],
         deps = [],
-        test_deps = [],
         **kwargs):
     """Generates the Python GAPIC client into a Python library for the main src
     and the tests.
@@ -143,8 +122,6 @@ def py_gapic_library(
         src = src,
         gapic_yaml = gapic_yaml,
         service_yaml = service_yaml,
-        organization_name = organization_name,
-        dep_packages = dep_packages,
         **kwargs
     )
 
