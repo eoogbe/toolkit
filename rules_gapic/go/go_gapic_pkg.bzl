@@ -52,7 +52,7 @@ def _go_gapic_src_pkg_impl(ctx):
         chmod 644 {package_dir_path}/${{src_str%:*}}/*
     done
     cd {package_dir_path}
-    tar -zchpf {package_dir}.tar.gz {package_dir_expr}
+    tar -zchpf {package_dir}.tar.gz {package_dir_expr}*
     cd -
     mv {package_dir_path}/{package_dir}.tar.gz {pkg}
     """.format(
@@ -72,7 +72,7 @@ def _go_gapic_src_pkg_impl(ctx):
 
 _go_gapic_src_pkg = rule(
     attrs = {
-        "deps": attr.label_list(allow_files = True, mandatory = True, non_empty = True),
+        "deps": attr.label_list(allow_files = True, mandatory = True),
         "package_dir": attr.string(mandatory = True),
     },
     outputs = {"pkg": "%{name}.tar.gz"},

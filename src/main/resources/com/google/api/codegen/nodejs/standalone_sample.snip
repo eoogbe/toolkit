@@ -4,9 +4,12 @@
 
 @snippet generate(sampleFile)
   @let apiMethod = sampleFile.libraryMethod
-    @let sample = apiMethod.samples.get(0)
-      // DO NOT EDIT! This is a generated sample ("{@sample.callingForm}",  "{@sample.valueSet.id}")
-      'use strict';
+    @let sample = sampleFile.sample
+      {@lineComments(sampleFile.fileHeader.copyrightLines)}
+      //
+      {@lineComments(sampleFile.fileHeader.licenseLines)}
+
+      // DO NOT EDIT! This is a generated sample ("{@sample.callingForm}",  "{@sample.id}")
 
       // sample-metadata:
       //   title: {@sample.title}
@@ -14,6 +17,8 @@
         {@descriptionLines("//", sample.descriptionLine, sample.additionalDescriptionLines)}
       @end
       //   usage: node {@sampleFile.outputPath} {@commandlineArgumentList(sample.sampleInitCode.argDefaultParams)}
+
+      'use strict';
 
       // [START {@sample.regionTag}]
       {@standaloneSample(apiMethod, sample)}

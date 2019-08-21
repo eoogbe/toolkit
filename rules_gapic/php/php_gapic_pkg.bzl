@@ -37,7 +37,7 @@ def _php_gapic_src_pkg_impl(ctx):
         unzip -q -o $gapic_src -d {package_dir_path}
     done
     cd {package_dir_path}
-    tar -zchpf {package_dir}.tar.gz {package_dir_expr}
+    tar -zchpf {package_dir}.tar.gz {package_dir_expr}*
     cd -
     mv {package_dir_path}/{package_dir}.tar.gz {pkg}
     rm -rf {package_dir_path}
@@ -58,17 +58,18 @@ def _php_gapic_src_pkg_impl(ctx):
 
 _php_gapic_src_pkg = rule(
     attrs = {
-        "deps": attr.label_list(allow_files = True, mandatory = True, non_empty = True),
+        "deps": attr.label_list(allow_files = True, mandatory = True),
         "package_dir": attr.string(mandatory = True),
     },
     outputs = {"pkg": "%{name}.tar.gz"},
     implementation = _php_gapic_src_pkg_impl,
 )
 
-def php_gapic_assembly_pkg(name, deps):
+def php_gapic_assembly_pkg(name, deps, **kwargs):
     _php_gapic_src_pkg(
         name = name,
         deps = deps,
         package_dir = name,
+        **kwargs
     )
 
