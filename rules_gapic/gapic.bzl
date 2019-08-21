@@ -304,6 +304,65 @@ gapic_pkg_metadata_config = rule(
     """,
 )
 
+def _replaced_import_proto_srcs_impl(ctx):
+    substitutions = { ctx.attr.strip_import_prefix : ctx.attr.import_prefix }
+    outs = []
+    for dep in ctx.attr.deps:
+        srcs = dep[ProtoInfo].check_dep_sources.to_list()
+        for src in srcs:
+            out = ctx.actions.declare_file(
+                "%s/%s" % (ctx.label.name, src.basename),
+                sibling = src,
+            )
+            outs.append(out)
+            ctx.actions.expand_template(
+                template = src,
+                output = out,
+                substitutions = substitutions,
+            )
+
+    return [DefaultInfo(files = depset(direct = outs))]
+
+replaced_import_proto_srcs = rule(
+    implementation = _replaced_import_proto_srcs_impl,
+    attrs = {
+      "import_prefix": attr.string(
+          mandatory = True,
+          doc = "The prefix to add to the paths of the .proto files",
+      ),
+      "strip_import_prefix": attr.string(
+        mandatory = True,
+        doc = "The prefix to strip from the paths of the .proto files",
+      ),
+      "deps": attr.label_list(
+          doc = "The proto library dependencies",
+          mandatory = True,
+          allow_empty = False,
+          providers = [ProtoInfo],
+      ),
+      doc = """Generates a copy of the proto dependencies in a new location,
+      replacing the import paths
+      """,
+    },
+)
+
+def moved_proto_library(
+        name, srcs, import_prefix, strip_import_prefix, deps = []):
+    srcs_name = "%s_srcs" % name
+    replaced_import_proto_srcs(
+        name = srcs_name,
+        import_prefix = import_prefix,
+        strip_import_prefix = strip_import_prefix,
+        deps = srcs,
+    )
+    native.proto_library(
+        name = name,
+        srcs = [":%s" % srcs_name],
+        deps = deps,
+        import_prefix = import_prefix,
+        strip_import_prefix = strip_import_prefix
+    )
+
 #
 # Private helper functions
 #
