@@ -167,3 +167,12 @@ def py_gapic_library(
         srcjar = test_file,
         extension = ".py",
     )
+
+    pkg_file = ":%s-pkg.srcjar" % srcjar_name
+    pkg_dir = "%s_pkg" % srcjar_name
+
+    unzipped_srcjar(
+        name = pkg_dir,
+        srcjar = pkg_file,
+        extension = ".py",
+    )

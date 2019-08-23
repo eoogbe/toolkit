@@ -18,11 +18,16 @@ load("//rules_gapic:gapic_pkg.bzl", "construct_package_dir_paths")
 def _py_gapic_src_pkg_impl(ctx):
     proto_grpc_srcs = []
     gapic_srcs = []
+    srcjars = []
     for dep in ctx.attr.deps:
         if ProtoInfo in dep:
             proto_grpc_srcs.extend(dep[ProtoInfo].check_deps_sources)
         elif PyInfo in dep:
             gapic_srcs.extend(dep[PyInfo].transitive_sources.to_list())
+        elif hasattr(dep, "files"):
+            for dep_file in dep.files.to_list():
+                if dep_file.extension == "srcjar":
+                    srcjars.append(dep_file)
 
     paths = construct_package_dir_paths(
         ctx.attr.package_dir,
@@ -34,6 +39,9 @@ def _py_gapic_src_pkg_impl(ctx):
     mkdir -p {package_dir_path}
     for proto_grpc_src in {proto_grpc_srcs}; do
         unzip -q -o $proto_grpc_src -d {package_dir_path}
+    done
+    for srcjar in {srcjars}; do
+        unzip -q -o $srcjar -d {package_dir_path}
     done
     for gapic_src in {gapic_srcs}; do
         if [ -d "${{gapic_src}}" ]; then
@@ -47,6 +55,7 @@ def _py_gapic_src_pkg_impl(ctx):
     rm -rf {package_dir_path}
     """.format(
         proto_grpc_srcs = " ".join(["'%s'" % f.path for f in proto_grpc_srcs]),
+        srcjars = " ".join(["'%s'" % f.path for f in srcjars]),
         gapic_srcs = " ".join(["'%s'" % f.path for f in gapic_srcs]),
         package_dir_path = paths.package_dir_path,
         package_dir = paths.package_dir,
@@ -73,8 +82,7 @@ _py_gapic_src_pkg = rule(
         ),
         "package_dir": attr.string(
             doc = "The directory containing the assembly package.",
-            mandatory = False,
-            default = "",
+            mandatory = True,
         ),
     },
     outputs = {"pkg": "%{name}.tar.gz"},
@@ -90,5 +98,6 @@ def py_gapic_assembly_pkg(name, deps, version = "", **kwargs):
     _py_gapic_src_pkg(
         name = name,
         deps = deps,
+        package_dir = name,
         **kwargs
     )
